@@ -1,0 +1,9 @@
+{% include 'header.html' %}
+<ul>
+{% for i in methods_name -%}
+    <li>
+        <a href="/{{i.name_method}}">{{i.name_method}}</a>
+    </li>
+{% endfor -%}
+</ul>
+{% include 'footer.html' %}

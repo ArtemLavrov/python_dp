@@ -1,0 +1,15 @@
+{% include 'header.html' %}
+<div>
+    <h1>
+       YUO in the RSA html page
+    </h1>
+    <a href="{{ url_for('content') }}"> Main Page </a>
+</div>
+<div>
+    <form action="/RSA" method="post", enctype="multipart/form-data">
+        <label for="file"> File:</label>
+        <input type="file" id="file" name="file"><br />
+        <button>Upload</button>
+    </form>
+</div>
+{% include 'footer.html' %}

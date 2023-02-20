@@ -74,6 +74,10 @@ def magma():
     return render_template('magma.html', domain='http://192.168.0.103:5000/magma', title="magma")
 
 
+# @app.route('/download')
+# def download():
+#     return render_template('download.html', files=os.listdir('D:/python_dp/output'))
+
 
 
 

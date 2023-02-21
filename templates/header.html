@@ -1,7 +1,14 @@
-<html>
 <head lang="ru">
     <meta charset="UTF-8">
     <base href="{{domain}}">
     <title>{{title}}</title>
+    <link type="text/css" href="{{url_for('static', filename='css/styles.css')}}" rel="stylesheet" />
 </head>
-</html>
+<body style="margin: 0px;">
+    <header style="width: 98%: padding: 0px; float=left; margin: 0px;">
+        {% for m in menu -%}
+        <div class="header", style="color: white;">
+              {{ m }}
+        </div>
+        {% endfor -%}
+    </header>

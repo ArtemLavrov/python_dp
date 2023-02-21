@@ -1,5 +1,5 @@
 {% include 'header.html' %}
 {% for filename in files %}
-<a href="">{{ filename }}</a>
+<a href="{{ url_for('download_file', filename=filename) }}">{{ filename }}</a></br>
 {% endfor %}
 {% include 'footer.html' %}

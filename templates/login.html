@@ -1,0 +1,7 @@
+{% include 'header.html' %}
+<form action="/login", method="post">
+  <p><label>Логин: </label><input type="text" name="username", value="" required />
+  <p><label></label>Пароль: <input type="password" name="psw", value="" required />
+  <p><input type="submit", value="Войти" />
+</form>
+{% include 'footer.html' %}

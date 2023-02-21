@@ -99,6 +99,9 @@ def download():
 def download_file(filename):
     return send_from_directory('D:/python_dp/output', filename)
 
+@app.errorhandler(404)
+def pageNotFound(error):
+    return render_template('page404.html', title="Страница не найдена", menu=menu), 404
 
 
 

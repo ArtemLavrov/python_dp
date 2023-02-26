@@ -8,6 +8,7 @@ from flask_sqlalchemy import SQLAlchemy
 # from wtforms import FileField, SubmitField
 from jinja2 import Template, FileSystemLoader, FunctionLoader, Environment
 from werkzeug.utils import secure_filename
+from werkzeug.security import generate_password_hash, check_password_hash
 # from wtforms.validators import InputRequired
 
 
@@ -21,19 +22,63 @@ def allowed_file(filename):
 
 #Создание экземлпяра объекта
 app = Flask(__name__)
-menu = ["Авторизация", "Полезная информация", "Обратная связь"]
+
+
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 app.config['SECRET_KEY'] = 'fjehqjchekcejai4kfjkae'
 
 
 # app.config["SQLALCHEMY_DATABASE_URI"] = 'sqlite:///D:/python_dp/db.sqlite3'
-# # app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
-# db = SQLAlchemy(app)
+app.config["SQLALCHEMY_DATABASE_URI"] = 'sqlite:///db.sqlite3'
+app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
+db = SQLAlchemy(app)
+
+menu = ["Авторизация", "Полезная информация", "Обратная связь"]
 
 
 # class UploadFileForm(FlaskForm):
 #     file = FileField("File", validators=[InputRequired()])
 #     submit = SubmitField("Upload File")
+
+
+class Users(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    email = db.Column(db.String(100), unique=True)
+    psw = db.Column(db.String(500), nullable=True)
+    date = db.Column(db.DateTime, default=datetime.utcnow)
+
+    def __repr__(self):
+        return f"<users {self.id}>"
+
+class Profiles(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(50), unique=True)
+    Years = db.Column(db.Integer)
+    city = db.Column(db.String(100))
+
+    user_id = db.Column(db.Integer, db.ForeignKey('users.id'))
+
+    def __repr__(self):
+        return f"<profiles {self.id}>"
+
+
+@app.route("/register", methods=["POST", "GET"])
+def register():
+    if request.method == "POST":
+        try:
+            hash_psw = generate_password_hash(request.form['psw'])
+            u = Users(email=request.form['email'], psw=hash_psw)
+            db.session.add(u)
+            db.session.flush()
+
+            p = Profiles(name=request.form['name'],Years=request.form['old'], city=request.form['city'], user_id=u.id)
+            db.session.add(p)
+            db.session.commit()
+        except:
+            db.session.rollback()
+            print("Ошибка добавления в БД")
+    return render_template('register.html', title='Регистрация', menu=menu)
+
 
 @app.route("/profile/<username>")
 def profile(username):

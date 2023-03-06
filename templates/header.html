@@ -5,10 +5,14 @@
     <link type="text/css" href="{{url_for('static', filename='css/styles.css')}}" rel="stylesheet" />
 </head>
 <body style="margin: 0px;">
-    <header style="width: 98%: padding: 0px; float=left; margin: 0px;">
-        {% for m in menu -%}
-        <div class="header", style="color: white;">
-              {{ m }}
+    <header>
+        <div class="wrap-logo">
+            <a href="#logo" class="logo">Логотип сайта</a>
         </div>
-        {% endfor -%}
+        <nav>
+            <a class="active" href="#home">Главная</a>
+            <a href="#contact">Контакты</a>
+            <a href="#about">О нас</a>
+            <a href="#about">Регистрация</a>
+        </nav>
     </header>

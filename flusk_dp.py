@@ -65,18 +65,19 @@ class Profiles(db.Model):
 @app.route("/register", methods=["POST", "GET"])
 def register():
     if request.method == "POST":
-        try:
+         try:
             hash_psw = generate_password_hash(request.form['psw'])
             u = Users(email=request.form['email'], psw=hash_psw)
             db.session.add(u)
             db.session.flush()
 
-            p = Profiles(name=request.form['name'],Years=request.form['old'], city=request.form['city'], user_id=u.id)
+            p = Profiles(name=request.form['name'], Years=request.form['old'], city=request.form['city'], user_id=u.id)
             db.session.add(p)
             db.session.commit()
-        except:
-            db.session.rollback()
-            print("Ошибка добавления в БД")
+         except:
+             db.session.rollback()
+             print("Ошибка добавления в БД")
+
     return render_template('register.html', title='Регистрация', menu=menu)
 
 
@@ -90,7 +91,7 @@ def profile(username):
 def login():
     if 'userLogged' in session:
         return redirect(url_for('profile', username=session['userLogged']))
-    elif request.method == 'POST' and request.form['username'] == "Artem" and request.form['psw'] == "1234":
+    elif request.method == 'POST' and request.form['username'] == f"{db.session.query(Profiles.name).filter(Profiles.name==request.form['username']).first()[0]}" and check_password_hash(db.session.query(Users,Profiles).join(Profiles,Users.id==Profiles.user_id).filter(request.form['username']==Profiles.name and request.form['psw']==Users.psw).first()[0].psw, request.form['psw']):
         session['userLogged'] = request.form['username']
         return redirect(url_for('profile', username=session['userLogged']))
     return render_template('login.html', title="Авторизация", menu=menu)

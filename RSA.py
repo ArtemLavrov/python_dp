@@ -61,9 +61,9 @@ def decrypt(msg_ciphertext, package):
     return (''.join(msg_plaintext))
 
 if __name__ == "__main__":
+    msg = input("Введите сообщение которое хотите зашифровать")
     public, private = Generate_Keypair()
     #with open('encription.txt',mode='w', encoding='UTF-8' ) as file:
-    msg = input("Введите сообщение которое хотите зашифровать")
     encript_msg = encrypt(msg, public)
     print(encript_msg)
     decrypt_msg = decrypt(encript_msg,private)

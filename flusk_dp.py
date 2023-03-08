@@ -1,5 +1,5 @@
 import os
-from datetime import datetime
+from datetime import datetime, timedelta
 
 
 from flask import Flask, render_template, url_for, request,send_from_directory,session, redirect,abort
@@ -26,6 +26,7 @@ app = Flask(__name__)
 
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 app.config['SECRET_KEY'] = 'fjehqjchekcejai4kfjkae'
+app.permanent_session_lifetime = timedelta(minutes=5)
 
 
 # app.config["SQLALCHEMY_DATABASE_URI"] = 'sqlite:///D:/python_dp/db.sqlite3'
@@ -61,11 +62,14 @@ class Profiles(db.Model):
     def __repr__(self):
         return f"<profiles {self.id}>"
 
+class File(db.Model):
+    id = db.Column()
+
 
 @app.route("/register", methods=["POST", "GET"])
 def register():
     if request.method == "POST":
-         try:
+        try:
             hash_psw = generate_password_hash(request.form['psw'])
             u = Users(email=request.form['email'], psw=hash_psw)
             db.session.add(u)
@@ -74,10 +78,10 @@ def register():
             p = Profiles(name=request.form['name'], Years=request.form['old'], city=request.form['city'], user_id=u.id)
             db.session.add(p)
             db.session.commit()
-         except:
-             db.session.rollback()
-             print("Ошибка добавления в БД")
-
+            return redirect(url_for('login'))
+        except:
+            db.session.rollback()
+            print("Ошибка добавления в БД")
     return render_template('register.html', title='Регистрация', menu=menu)
 
 
@@ -89,12 +93,34 @@ def profile(username):
 
 @app.route("/login", methods=["POST", "GET"])
 def login():
-    if 'userLogged' in session:
-        return redirect(url_for('profile', username=session['userLogged']))
-    elif request.method == 'POST' and request.form['username'] == f"{db.session.query(Profiles.name).filter(Profiles.name==request.form['username']).first()[0]}" and check_password_hash(db.session.query(Users,Profiles).join(Profiles,Users.id==Profiles.user_id).filter(request.form['username']==Profiles.name and request.form['psw']==Users.psw).first()[0].psw, request.form['psw']):
+    # # if 'userLogged' in session:
+    # #     return redirect(url_for('profile', username=session['userLogged']))
+    # if request.method == 'POST' and request.form['username'] == f"{db.session.query(Profiles.name).filter(Profiles.name==request.form['username']).first()[0]}" and check_password_hash(db.session.query(Users,Profiles).join(Profiles,Users.id==Profiles.user_id).filter(request.form['username']==Profiles.name and request.form['psw']==Users.psw).first()[0].psw, request.form['psw']):
+    #     session.permanent = True
+    #     session['user'] = request.form['username']
+    #     return redirect(url_for('profile', username=session['user']))
+    # elif "user" in session:
+    #     return redirect(url_for('profile', username=session['user']))
+    #
+    # return render_template('login.html', title="Авторизация", menu=menu)
+    if request.method == 'POST' and request.form[
+        'username'] == f"{db.session.query(Profiles.name).filter(Profiles.name == request.form['username']).first()[0]}" and check_password_hash(
+            db.session.query(Users, Profiles).join(Profiles, Users.id == Profiles.user_id).filter(
+                    request.form['username'] == Profiles.name and request.form['psw'] == Users.psw).first()[0].psw,
+            request.form['psw']):
+        session.permanent = True
         session['userLogged'] = request.form['username']
         return redirect(url_for('profile', username=session['userLogged']))
+    elif 'userLogged' in session:
+        return redirect(url_for('profile', username=session['userLogged']))
     return render_template('login.html', title="Авторизация", menu=menu)
+
+
+@app.route('/logout')
+def logout():
+    session.pop("userLogged", None)
+    return redirect(url_for("login"))
+
 
 @app.route('/')
 def content():

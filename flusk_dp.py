@@ -56,15 +56,19 @@ class Profiles(db.Model):
     name = db.Column(db.String(50), unique=True)
     Years = db.Column(db.Integer)
     city = db.Column(db.String(100))
-
     user_id = db.Column(db.Integer, db.ForeignKey('users.id'))
 
     def __repr__(self):
         return f"<profiles {self.id}>"
 
 class File(db.Model):
-    id = db.Column()
+    id = db.Column(db.Integer, primary_key=True)
+    name_file = db.Column(db.String(500))
+    file = db.Column(db.BLOB, nullable=True)
+    userID_file = db.Column(db.Integer, db.ForeignKey('profiles.id'))
 
+    def __repr__(self):
+        return f"<file {self.id}>"
 
 @app.route("/register", methods=["POST", "GET"])
 def register():
@@ -93,16 +97,6 @@ def profile(username):
 
 @app.route("/login", methods=["POST", "GET"])
 def login():
-    # # if 'userLogged' in session:
-    # #     return redirect(url_for('profile', username=session['userLogged']))
-    # if request.method == 'POST' and request.form['username'] == f"{db.session.query(Profiles.name).filter(Profiles.name==request.form['username']).first()[0]}" and check_password_hash(db.session.query(Users,Profiles).join(Profiles,Users.id==Profiles.user_id).filter(request.form['username']==Profiles.name and request.form['psw']==Users.psw).first()[0].psw, request.form['psw']):
-    #     session.permanent = True
-    #     session['user'] = request.form['username']
-    #     return redirect(url_for('profile', username=session['user']))
-    # elif "user" in session:
-    #     return redirect(url_for('profile', username=session['user']))
-    #
-    # return render_template('login.html', title="Авторизация", menu=menu)
     if request.method == 'POST' and request.form[
         'username'] == f"{db.session.query(Profiles.name).filter(Profiles.name == request.form['username']).first()[0]}" and check_password_hash(
             db.session.query(Users, Profiles).join(Profiles, Users.id == Profiles.user_id).filter(

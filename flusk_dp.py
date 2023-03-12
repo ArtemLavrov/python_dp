@@ -26,7 +26,7 @@ app = Flask(__name__)
 
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 app.config['SECRET_KEY'] = 'fjehqjchekcejai4kfjkae'
-app.permanent_session_lifetime = timedelta(minutes=5)
+#app.permanent_session_lifetime = timedelta(minutes=5)
 
 
 # app.config["SQLALCHEMY_DATABASE_URI"] = 'sqlite:///D:/python_dp/db.sqlite3'
@@ -137,7 +137,8 @@ def RSA():
         if file and allowed_file(file.filename):
             filename = secure_filename(file.filename)
             #new_filename = f'{filename.split(".")[0]}' + f'{str(datetime.day)}.' + f'{filename.split(".", 1)[1].lower()}'
-            file.save(os.path.join(os.path.abspath(os.path.dirname(__file__)), 'D:/python_dp/Downloads', secure_filename(file.filename)))
+            #file.save(os.path.join(os.path.abspath(os.path.dirname(__file__)), 'D:/python_dp/Downloads', secure_filename(file.filename)))
+
         return 'Uploaded'
     return render_template('RSA.html', domain='http://localhost:5000/RSA', title="RSA", menu=menu)
     # return render_template('RSA.html', domain='http://192.168.0.103:5000/RSA', title = "RSA", form=form)

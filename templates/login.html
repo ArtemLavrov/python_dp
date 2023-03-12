@@ -1,7 +1,20 @@
-{% include 'header.html' %}
+{% extends 'header.html' %}
+{% block content %}
+<header>
+    <div class="wrap-logo">
+        <a href="#logo" class="logo">Логотип сайта</a>
+    </div>
+        <nav>
+            <a class="active" href="#home">Главная</a>
+            <a href="#about">О нас</a>
+            <a href="{url_for('register')}">Регистрация</a>
+        </nav>
+</header>
+
 <form action="/login", method="post">
   <p><label>Логин: </label><input type="text" name="username", value="" required />
   <p><label></label>Пароль: <input type="password" name="psw", value="" required />
   <p><input type="submit", value="Войти" />
 </form>
+{% endblock %}
 {% include 'footer.html' %}

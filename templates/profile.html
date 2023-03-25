@@ -7,9 +7,10 @@
         <nav>
             <a class="active" href="#home">Главная</a>
             <a href="#about">О нас</a>
-            <a href="{url_for('logout')}">Выход</a>
+            <a href="{{ url_for('logout') }}">Выход</a>
         </nav>
 </header>
+
 Welcome to you self page {{username}}
 {% endblock %}
 {% include 'footer.html' %}

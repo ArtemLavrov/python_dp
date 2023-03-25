@@ -137,8 +137,7 @@ def RSA():
         if file and allowed_file(file.filename):
             filename = secure_filename(file.filename)
             #new_filename = f'{filename.split(".")[0]}' + f'{str(datetime.day)}.' + f'{filename.split(".", 1)[1].lower()}'
-            #file.save(os.path.join(os.path.abspath(os.path.dirname(__file__)), 'D:/python_dp/Downloads', secure_filename(file.filename)))
-
+            file.save(os.path.join(os.path.abspath(os.path.dirname(__file__)), 'C:/Users/ae.lavrov/python_dp-main/Downloads', secure_filename(file.filename)))
         return 'Uploaded'
     return render_template('RSA.html', domain='http://localhost:5000/RSA', title="RSA", menu=menu)
     # return render_template('RSA.html', domain='http://192.168.0.103:5000/RSA', title = "RSA", form=form)
@@ -149,7 +148,7 @@ def magma():
     if request.method == 'POST':
         file = request.files['file']
         if file and allowed_file(file.filename):
-            file.save(os.path.join(os.path.abspath(os.path.dirname(__file__)), 'D:/python_dp/Downloads', secure_filename(file.filename)))
+            file.save(os.path.join(os.path.abspath(os.path.dirname(__file__)), 'C:/Users/ae.lavrov/python_dp-main/Downloads', secure_filename(file.filename)))
         return 'Uploaded'
     # form = UploadFileForm()
     # if form.validate_on_submit():

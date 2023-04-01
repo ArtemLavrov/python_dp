@@ -1,9 +1,20 @@
-{% include 'header.html' %}
+{% extends 'header.html' %}
+{% block content %}
+<header>
+    <div class="wrap-logo">
+        <a href="#logo" class="logo">Логотип сайта</a>
+    </div>
+        <nav>
+            <a class="active" href="#home">Главная</a>
+            <a href="#about">О нас</a>
+            <a href="{{ url_for('logout') }}">Выход</a>
+        </nav>
+</header>
 <div>
     <h1>
        YUO in the RSA html page
     </h1>
-    <a href="{{ url_for('content') }}"> Main Page </a>
+    <a href="{{ url_for('login') }}"> Main Page </a>
 </div>
 <div>
     <form action="/RSA" method="post", enctype="multipart/form-data">
@@ -15,4 +26,5 @@
 </div>
     <button>Download</button>
 </div>
+{% endblock %}
 {% include 'footer.html' %}

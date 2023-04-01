@@ -1,7 +1,7 @@
 import math
 import sys
 from Crypto import Random
-from Crypto.Util import iter_range
+from Crypto.Util.py3compat import iter_range
 
 # Backward compatibility
 _fastmath = None

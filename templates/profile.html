@@ -1,6 +1,6 @@
 {% extends 'header.html' %}
 {% block content %}
-<header>
+<header xmlns="http://www.w3.org/1999/html">
     <div class="wrap-logo">
         <a href="#logo" class="logo">Логотип сайта</a>
     </div>
@@ -10,7 +10,18 @@
             <a href="{{ url_for('logout') }}">Выход</a>
         </nav>
 </header>
-
-Welcome to you self page {{username}}
+Welcome to you self page {{ username }}
+<div>
+    {% for i in methods_name -%}
+    <li>
+        <a href="{{ url_for('%s' % i.name_method) }}">{{ i.name_method }}</a>
+    </li>
+    {% endfor -%}
+</div>
+<form action="", method="POST", enctype="multipart/form-data">
+    <div>
+        <button type="submit", name="button", value="button", class="btn third">Сгенерировать ключи</button>
+    </div>
+</form>
 {% endblock %}
 {% include 'footer.html' %}

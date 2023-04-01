@@ -2,8 +2,10 @@ import os
 from datetime import datetime, timedelta
 
 
-from flask import Flask, render_template, url_for, request,send_from_directory,session, redirect,abort
+from flask import Flask, render_template, url_for, request,send_from_directory,session, redirect, abort
+# from flask_login import LoginManager
 from flask_sqlalchemy import SQLAlchemy
+from RSA import Generate_Keypair
 # from flask_wtf import FlaskForm
 # from wtforms import FileField, SubmitField
 from jinja2 import Template, FileSystemLoader, FunctionLoader, Environment
@@ -27,12 +29,12 @@ app = Flask(__name__)
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 app.config['SECRET_KEY'] = 'fjehqjchekcejai4kfjkae'
 #app.permanent_session_lifetime = timedelta(minutes=5)
-
-
 # app.config["SQLALCHEMY_DATABASE_URI"] = 'sqlite:///D:/python_dp/db.sqlite3'
 app.config["SQLALCHEMY_DATABASE_URI"] = 'sqlite:///db.sqlite3'
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 db = SQLAlchemy(app)
+
+
 
 menu = ["Авторизация", "Полезная информация", "Обратная связь"]
 
@@ -40,7 +42,6 @@ menu = ["Авторизация", "Полезная информация", "Об
 # class UploadFileForm(FlaskForm):
 #     file = FileField("File", validators=[InputRequired()])
 #     submit = SubmitField("Upload File")
-
 
 class Users(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -57,6 +58,8 @@ class Profiles(db.Model):
     Years = db.Column(db.Integer)
     city = db.Column(db.String(100))
     user_id = db.Column(db.Integer, db.ForeignKey('users.id'))
+    public_key = db.Column(db.String)
+    private_key = db.Column(db.String)
 
     def __repr__(self):
         return f"<profiles {self.id}>"
@@ -89,12 +92,6 @@ def register():
     return render_template('register.html', title='Регистрация', menu=menu)
 
 
-@app.route("/profile/<username>")
-def profile(username):
-    if 'userLogged' not in session or session['userLogged']!=username:
-        abort(401)
-    return render_template('profile.html', title=username, username=username, menu=menu)
-
 @app.route("/login", methods=["POST", "GET"])
 def login():
     if request.method == 'POST' and request.form[
@@ -108,6 +105,27 @@ def login():
     elif 'userLogged' in session:
         return redirect(url_for('profile', username=session['userLogged']))
     return render_template('login.html', title="Авторизация", menu=menu)
+
+@app.route("/profile/<username>", methods=['GET','POST'])
+def profile(username):
+    if 'userLogged' not in session or session['userLogged'] != username:
+        abort(401)
+    crypto_methods = [{'id': 1, 'name_method': 'RSA'},
+                      {'id': 2, 'name_method': 'magma'}
+                      ]
+    if request.method == 'POST':
+        try:
+            private, public = Generate_Keypair()
+            pr = Profiles.query.filter(Profiles.name == username).first()
+            pb = Profiles.query.filter(Profiles.name == username).first()
+            pr.private_key = f'{private[0]},{private[1]}'
+            pb.public_key = f'{public[0]},{public[1]}'
+            db.session.commit()
+            return redirect(url_for('KeyGenResult', username=username))
+        except:
+            print("Ошибка добавление ключей в базу данных")
+            db.session.rollback()
+    return render_template('profile.html', title=username, username=username, menu=menu, methods_name=crypto_methods)
 
 
 @app.route('/logout')
@@ -139,10 +157,26 @@ def RSA():
             #new_filename = f'{filename.split(".")[0]}' + f'{str(datetime.day)}.' + f'{filename.split(".", 1)[1].lower()}'
             file.save(os.path.join(os.path.abspath(os.path.dirname(__file__)), 'C:/Users/ae.lavrov/python_dp-main/Downloads', secure_filename(file.filename)))
         return 'Uploaded'
-    return render_template('RSA.html', domain='http://localhost:5000/RSA', title="RSA", menu=menu)
+    return render_template('RSA.html', title="RSA")
     # return render_template('RSA.html', domain='http://192.168.0.103:5000/RSA', title = "RSA", form=form)
 
-
+@app.route('/KeyGenResult/<username>', methods=['GET','POST'])
+def KeyGenResult(username):
+    if 'userLogged' not in session or session['userLogged'] != username:
+        abort(401)
+    # if request.method == 'POST' and request.form['button']:
+    #     try:
+    #         private, public = Generate_Keypair()
+    #         pr = Profiles.query.filter_by(Profiles.name == username).first()
+    #         pb = Profiles.query.filter_by(Profiles.name == username).first()
+    #         pr.private_key = f'{private}'
+    #         db.session.commit()
+    #         pb.public_key=f'{public}'
+    #         db.session.commit()
+    #     except:
+    #         print("Ошибка добавление ключей в базу данных")
+    #         db.session.rollback()
+    return render_template('KeyGenResult.html', title=KeyGenResult, username=username)
 @app.route('/magma')
 def magma():
     if request.method == 'POST':
@@ -169,7 +203,13 @@ def download_file(filename):
 def pageNotFound(error):
     return render_template('page404.html', title="Страница не найдена", menu=menu), 404
 
+@app.errorhandler(401)
+def pageNotFound(error):
+    return render_template('page401.html', title="Неавторизованный пользователь", menu=menu), 404
 
+
+# with app.test_request_context():
+#     print(url_for('profile'))
 
 if __name__ == "__main__":
     app.run(debug=True, host='0.0.0.0')

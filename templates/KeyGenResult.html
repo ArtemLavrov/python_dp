@@ -1,0 +1,16 @@
+{% extends 'header.html' %}
+{% block content %}
+<header>
+    <div class="wrap-logo">
+        <a href="#logo" class="logo">Логотип сайта</a>
+    </div>
+        <nav>
+            <a class="active" href="#home">Главная</a>
+            <a href="#about">О нас</a>
+            <a href="{{ url_for('register') }}">Регистрация</a>
+        </nav>
+</header>
+<h1>Вы успешно сгенерировали ключи в скором времени Ваш приватный ключ будет выслан вам на почту. Заранее советуем сохранить его на цифровой носитель и удалить сообщение во избежание кражи ваших личных данных </h1>
+<h1>Ваш публичнй ключ</h1>
+{% endblock %}
+{% include 'footer.html' %}

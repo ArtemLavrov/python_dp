@@ -2,7 +2,7 @@ import os
 from datetime import datetime, timedelta
 
 
-from flask import Flask, render_template, url_for, request,send_from_directory,session, redirect, abort
+from flask import Flask, render_template, url_for, request,send_from_directory,session, redirect, abort, flash
 # from flask_login import LoginManager
 from flask_sqlalchemy import SQLAlchemy
 from RSA import Generate_Keypair
@@ -113,18 +113,21 @@ def profile(username):
     crypto_methods = [{'id': 1, 'name_method': 'RSA'},
                       {'id': 2, 'name_method': 'magma'}
                       ]
-    if request.method == 'POST':
-        try:
-            private, public = Generate_Keypair()
-            pr = Profiles.query.filter(Profiles.name == username).first()
-            pb = Profiles.query.filter(Profiles.name == username).first()
-            pr.private_key = f'{private[0]},{private[1]}'
-            pb.public_key = f'{public[0]},{public[1]}'
-            db.session.commit()
-            return redirect(url_for('KeyGenResult', username=username))
-        except:
-            print("Ошибка добавление ключей в базу данных")
-            db.session.rollback()
+    if request.method == 'POST' and request.form["button"]:
+        if not Profiles.query.filter(Profiles.name == f'{username}').first().public_key or not Profiles.query.filter(Profiles.name == f'{username}').first().private_key:
+            try:
+                private, public = Generate_Keypair()
+                pr = Profiles.query.filter(Profiles.name == username).first()
+                pb = Profiles.query.filter(Profiles.name == username).first()
+                pr.private_key = f'{private[0]},{private[1]}'
+                pb.public_key = f'{public[0]},{public[1]}'
+                db.session.commit()
+                return redirect(url_for('KeyGenResult', username=username))
+            except:
+                print("Ошибка добавление ключей в базу данных")
+                db.session.rollback()
+        else:
+            flash("Ключи уже сгенерированы", category='error')
     return render_template('profile.html', title=username, username=username, menu=menu, methods_name=crypto_methods)
 
 
@@ -150,13 +153,13 @@ def content():
 
 @app.route('/RSA', methods=['GET', 'POST'])
 def RSA():
-    if request.method == 'POST':
+    if request.method == 'POST' and request.form['file']:
         file = request.files['file']
-        if file and allowed_file(file.filename):
-            filename = secure_filename(file.filename)
-            #new_filename = f'{filename.split(".")[0]}' + f'{str(datetime.day)}.' + f'{filename.split(".", 1)[1].lower()}'
-            file.save(os.path.join(os.path.abspath(os.path.dirname(__file__)), 'C:/Users/ae.lavrov/python_dp-main/Downloads', secure_filename(file.filename)))
-        return 'Uploaded'
+        # if file and allowed_file(file.filename):
+        #     filename = secure_filename(file.filename)
+        #     #new_filename = f'{filename.split(".")[0]}' + f'{str(datetime.day)}.' + f'{filename.split(".", 1)[1].lower()}'
+        #     file.save(os.path.join(os.path.abspath(os.path.dirname(__file__)), 'C:/Users/ae.lavrov/python_dp-main/Downloads', secure_filename(file.filename)))
+        # return 'Uploaded'
     return render_template('RSA.html', title="RSA")
     # return render_template('RSA.html', domain='http://192.168.0.103:5000/RSA', title = "RSA", form=form)
 
@@ -179,16 +182,16 @@ def KeyGenResult(username):
     return render_template('KeyGenResult.html', title=KeyGenResult, username=username)
 @app.route('/magma')
 def magma():
-    if request.method == 'POST':
-        file = request.files['file']
-        if file and allowed_file(file.filename):
-            file.save(os.path.join(os.path.abspath(os.path.dirname(__file__)), 'C:/Users/ae.lavrov/python_dp-main/Downloads', secure_filename(file.filename)))
-        return 'Uploaded'
-    # form = UploadFileForm()
-    # if form.validate_on_submit():
-    #     file = form.file.data
-    #     file.save(os.path.join(os.path.abspath(os.path.dirname(__file__)), app.config['UPLOAD_FOLDER'], secure_filename(file.filename)))
-    #     return ('File has been uploaded')
+    if request.method == 'POST' and request.form['file']:
+            file = request.form['file']
+    #     if file and allowed_file(file.filename):
+    #         file.save(os.path.join(os.path.abspath(os.path.dirname(__file__)), 'C:/Users/ae.lavrov/python_dp-main/Downloads', secure_filename(file.filename)))
+    #     return 'Uploaded'
+    # # form = UploadFileForm()
+    # # if form.validate_on_submit():
+    # #     file = form.file.data
+    # #     file.save(os.path.join(os.path.abspath(os.path.dirname(__file__)), app.config['UPLOAD_FOLDER'], secure_filename(file.filename)))
+    # #     return ('File has been uploaded')
     return render_template('magma.html', domain='http://localhost:5000/magma', title="magma", menu=menu)
 
 

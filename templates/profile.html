@@ -1,6 +1,6 @@
 {% extends 'header.html' %}
 {% block content %}
-<header xmlns="http://www.w3.org/1999/html">
+<header>
     <div class="wrap-logo">
         <a href="#logo" class="logo">Логотип сайта</a>
     </div>
@@ -18,9 +18,14 @@ Welcome to you self page {{ username }}
     </li>
     {% endfor -%}
 </div>
-<form action="", method="POST", enctype="multipart/form-data">
+{% for cat,msg in get_flashed_messages(True) %}
+<div class="{{cat}}">
+    {{ msg }}
+</div>
+{% endfor %}
+<form action="", method="POST">
     <div>
-        <button type="submit", name="button", value="button", class="btn third">Сгенерировать ключи</button>
+        <input type="submit", name="button", value="Сгенерировать ключи" class="btn third"></input>
     </div>
 </form>
 {% endblock %}

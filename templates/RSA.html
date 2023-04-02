@@ -1,6 +1,6 @@
 {% extends 'header.html' %}
 {% block content %}
-<header>
+<header xmlns="http://www.w3.org/1999/html">
     <div class="wrap-logo">
         <a href="#logo" class="logo">Логотип сайта</a>
     </div>
@@ -16,15 +16,14 @@
     </h1>
     <a href="{{ url_for('login') }}"> Main Page </a>
 </div>
-<div>
-    <form action="/RSA" method="post", enctype="multipart/form-data">
-        <label for="file"> File:</label>
-        <input type="file" id="file" name="file"><br />
-        <button class="btn third">Upload</button>
-    </form>
-</div>
-</div>
-    <button>Download</button>
-</div>
+
+<form action="/RSA" method="POST", enctype="multipart/form-data">
+        <div>
+            <label for="file-upload", class="btn third">Загрузите файл</label>
+            <input id="file-upload" type="file", name="file" />
+            <input class="btn third", name="button" >Зашифровать</input>
+        </div>
+</form>
+
 {% endblock %}
 {% include 'footer.html' %}

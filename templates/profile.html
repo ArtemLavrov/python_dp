@@ -19,7 +19,7 @@ Welcome to you self page {{ username }}
     {% endfor -%}
 </div>
 {% for cat,msg in get_flashed_messages(True) %}
-<div class="{{cat}}">
+<div class="{{ cat }}">
     {{ msg }}
 </div>
 {% endfor %}

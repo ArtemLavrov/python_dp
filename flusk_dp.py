@@ -1,8 +1,9 @@
 import os
 from datetime import datetime, timedelta
+from io import BytesIO
 
 
-from flask import Flask, render_template, url_for, request,send_from_directory,session, redirect, abort, flash
+from flask import Flask, render_template, url_for, request,send_from_directory,session, redirect, abort, flash, send_file
 # from flask_login import LoginManager
 from flask_sqlalchemy import SQLAlchemy
 from RSA import Generate_Keypair
@@ -15,7 +16,7 @@ from werkzeug.security import generate_password_hash, check_password_hash
 
 
 UPLOAD_FOLDER = 'D:/python_dp/Downloads'
-ALLOWED_EXTENSIONS = set(['txt', 'pdf', 'png', 'jpg', 'jpeg', 'gif'])
+ALLOWED_EXTENSIONS = set(['txt', 'pdf', 'png', 'jpg', 'jpeg', 'gif', 'docx'])
 
 def allowed_file(filename):
     return '.' in filename and \
@@ -136,49 +137,28 @@ def logout():
     session.pop("userLogged", None)
     return redirect(url_for("login"))
 
-
-@app.route('/')
-def content():
-    crypto_methods = [{'id': 1, 'name_method': 'RSA'},
-                      {'id': 2, 'name_method': 'magma'}
-                      ]
-
-    return render_template('contents.html', methods_name=crypto_methods, menu=menu, domain='http://localhost:5000', title="Сайтик для шифрования файлов")
-    #file_loader = FileSystemLoader('templates')
-    #env = Environment(loader=file_loader)
-    # tm = env.get_template('contents.html')
-    # msg = tm.render(methods_name=crypto_methods, domain='http://localhost:5000:5000', title="Сайтик для шифрования файлов")
-    # return msg
-
-
 @app.route('/RSA', methods=['GET', 'POST'])
 def RSA():
-    if request.method == 'POST' and request.form['file']:
-        file = request.files['file']
-        # if file and allowed_file(file.filename):
-        #     filename = secure_filename(file.filename)
-        #     #new_filename = f'{filename.split(".")[0]}' + f'{str(datetime.day)}.' + f'{filename.split(".", 1)[1].lower()}'
-        #     file.save(os.path.join(os.path.abspath(os.path.dirname(__file__)), 'C:/Users/ae.lavrov/python_dp-main/Downloads', secure_filename(file.filename)))
-        # return 'Uploaded'
+    if request.method == 'POST' and request.files['filename']:
+        file = request.files['filename']
+        if file and allowed_file(file.filename):
+            try:
+                user_id = db.session.query(Profiles).filter(Profiles.name == f"{session['userLogged']}").first()
+                f = File(name_file=file.filename, file=file.read(), userID_file=user_id.id)
+                db.session.add(f)
+                db.session.commit()
+                flash("Файл успешно загружен")
+            except:
+                db.session.rollback()
+                flash("Ошибка загрузки файла")
+    else:
+        flash("Не выбран файл", category='error')
     return render_template('RSA.html', title="RSA")
-    # return render_template('RSA.html', domain='http://192.168.0.103:5000/RSA', title = "RSA", form=form)
 
 @app.route('/KeyGenResult/<username>', methods=['GET','POST'])
 def KeyGenResult(username):
     if 'userLogged' not in session or session['userLogged'] != username:
         abort(401)
-    # if request.method == 'POST' and request.form['button']:
-    #     try:
-    #         private, public = Generate_Keypair()
-    #         pr = Profiles.query.filter_by(Profiles.name == username).first()
-    #         pb = Profiles.query.filter_by(Profiles.name == username).first()
-    #         pr.private_key = f'{private}'
-    #         db.session.commit()
-    #         pb.public_key=f'{public}'
-    #         db.session.commit()
-    #     except:
-    #         print("Ошибка добавление ключей в базу данных")
-    #         db.session.rollback()
     return render_template('KeyGenResult.html', title=KeyGenResult, username=username)
 @app.route('/magma')
 def magma():
@@ -197,10 +177,19 @@ def magma():
 
 @app.route('/download')
 def download():
-    return render_template('download.html', files=os.listdir('D:/python_dp/output'))
-@app.route('/download/<filename>')
-def download_file(filename):
-    return send_from_directory('D:/python_dp/output', filename)
+    # if 'userLogged' not in session or session['userLogged'] != username:
+    #     abort(401)
+    username = session['userLogged']
+    name_files = []
+    upload = db.session.query(File).join(Profiles, Profiles.id == File.userID_file).filter(Profiles.name == f'{username}').all()
+    for i in range(len(upload)):
+        name_files.append({'name': upload[i].name_file,'id': upload[i].id})
+    return render_template('download.html', name_files=name_files)
+
+@app.route('/download/<upload_id>')
+def download_file(upload_id):
+    upload_file = db.session.query(File).filter(File.id == upload_id).first()
+    return  send_file(BytesIO(upload_file.file), download_name = upload_file.name_file, as_attachment=True)
 
 @app.errorhandler(404)
 def pageNotFound(error):

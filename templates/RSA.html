@@ -6,7 +6,7 @@
     </div>
         <nav>
             <a class="active" href="#home">Главная</a>
-            <a href="#about">О нас</a>
+            <a href="{{url_for('download', username=session['userLogged'])}}">Мои файлы</a>
             <a href="{{ url_for('logout') }}">Выход</a>
         </nav>
 </header>
@@ -16,12 +16,16 @@
     </h1>
     <a href="{{ url_for('login') }}"> Main Page </a>
 </div>
-
-<form action="/RSA" method="POST", enctype="multipart/form-data">
+{% for cat,msg in get_flashed_messages(True) %}
+<div class="{{ cat }}">
+    {{ msg }}
+</div>
+{% endfor %}
+<form action="" method="POST", enctype="multipart/form-data">
         <div>
             <label for="file-upload", class="btn third">Загрузите файл</label>
-            <input id="file-upload" type="file", name="file" />
-            <input class="btn third", name="button" >Зашифровать</input>
+            <input id="file-upload" type="file", name="filename">
+            <button class="btn third", name="button", type="submit" >Зашифровать</button>
         </div>
 </form>
 

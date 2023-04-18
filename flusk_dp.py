@@ -6,6 +6,7 @@ from io import BytesIO
 from flask import Flask, render_template, url_for, request,send_from_directory,session, redirect, abort, flash, send_file
 # from flask_login import LoginManager
 from flask_sqlalchemy import SQLAlchemy
+from hashlib import sha256
 from RSA import Generate_Keypair
 # from flask_wtf import FlaskForm
 # from wtforms import FileField, SubmitField
@@ -74,6 +75,18 @@ class File(db.Model):
     def __repr__(self):
         return f"<file {self.id}>"
 
+class HashKey(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    id_user = db.Column(db.Integer, db.ForeignKey('profiles.user_id'))
+    hash_public = db.Column(db.String)
+    hash_private = db.Column(db.String)
+
+    def __repr__(self):
+        return f"<hash_key {self.id}>"
+
+
+
+
 @app.route("/register", methods=["POST", "GET"])
 def register():
     if request.method == "POST":
@@ -123,6 +136,7 @@ def profile(username):
                 pr.private_key = f'{private[0]},{private[1]}'
                 pb.public_key = f'{public[0]},{public[1]}'
                 db.session.commit()
+
                 return redirect(url_for('KeyGenResult', username=username))
             except:
                 print("Ошибка добавление ключей в базу данных")

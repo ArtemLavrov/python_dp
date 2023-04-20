@@ -124,9 +124,26 @@ def login():
 def profile(username):
     if 'userLogged' not in session or session['userLogged'] != username:
         abort(401)
-    crypto_methods = [{'id': 1, 'name_method': 'RSA'},
-                      {'id': 2, 'name_method': 'magma'}
-                      ]
+    # crypto_methods = [{'id': 1, 'name_method': 'RSA'},
+    #                   {'id': 2, 'name_method': 'magma'}
+    #                   ]
+    if request.method == 'POST' and 'filename' in request.form:
+        file = request.form["filename"]
+        if not file:
+            flash('файл не выбран', category='error')
+        elif file and allowed_file(file.filename):
+            try:
+                user_id = db.session.query(Profiles).filter(Profiles.name == f"{session['userLogged']}").first()
+                f = File(name_file=file.filename, file=file.read(), userID_file=user_id.id)
+                db.session.add(f)
+                db.session.commit()
+                flash("Файл успешно загружен", category='success')
+            except:
+                db.session.rollback()
+                flash("Ошибка загрузки файла", category='error')
+        else:
+            flash("Не выбран файл или его расширение не подходит для загрузки", category='error')
+
     if request.method == 'POST' and request.form["button"]:
         if not Profiles.query.filter(Profiles.name == f'{username}').first().public_key or not Profiles.query.filter(Profiles.name == f'{username}').first().private_key:
             try:
@@ -136,14 +153,14 @@ def profile(username):
                 pr.private_key = f'{private[0]},{private[1]}'
                 pb.public_key = f'{public[0]},{public[1]}'
                 db.session.commit()
-
-                return redirect(url_for('KeyGenResult', username=username))
+                flash("Ключи успешно сгенерированы")
+                # return redirect(url_for('KeyGenResult', username=username))
             except:
                 print("Ошибка добавление ключей в базу данных")
                 db.session.rollback()
         else:
-            flash("Ключи уже сгенерированы", category='error')
-    return render_template('profile.html', title=username, username=username, menu=menu, methods_name=crypto_methods)
+            flash("Ключи уже сгенерированы", category='info')
+    return render_template('profile.html', title=username, username=username, menu=menu)
 
 
 @app.route('/logout')
@@ -151,43 +168,35 @@ def logout():
     session.pop("userLogged", None)
     return redirect(url_for("login"))
 
-@app.route('/RSA', methods=['GET', 'POST'])
-def RSA():
-    if request.method == 'POST' and request.files['filename']:
-        file = request.files['filename']
-        if file and allowed_file(file.filename):
-            try:
-                user_id = db.session.query(Profiles).filter(Profiles.name == f"{session['userLogged']}").first()
-                f = File(name_file=file.filename, file=file.read(), userID_file=user_id.id)
-                db.session.add(f)
-                db.session.commit()
-                flash("Файл успешно загружен")
-            except:
-                db.session.rollback()
-                flash("Ошибка загрузки файла")
-    else:
-        flash("Не выбран файл", category='error')
-    return render_template('RSA.html', title="RSA")
+# @app.route('/RSA', methods=['GET', 'POST'])
+# def RSA():
+#     if request.method == 'POST' and request.files['filename']:
+#         file = request.files['filename']
+#         if file and allowed_file(file.filename):
+#             try:
+#                 user_id = db.session.query(Profiles).filter(Profiles.name == f"{session['userLogged']}").first()
+#                 f = File(name_file=file.filename, file=file.read(), userID_file=user_id.id)
+#                 db.session.add(f)
+#                 db.session.commit()
+#                 flash("Файл успешно загружен")
+#             except:
+#                 db.session.rollback()
+#                 flash("Ошибка загрузки файла")
+#     else:
+#         flash("Не выбран файл", category='error')
+#     return render_template('RSA.html', title="RSA")
 
 @app.route('/KeyGenResult/<username>', methods=['GET','POST'])
 def KeyGenResult(username):
     if 'userLogged' not in session or session['userLogged'] != username:
         abort(401)
     return render_template('KeyGenResult.html', title=KeyGenResult, username=username)
-@app.route('/magma')
-def magma():
-    if request.method == 'POST' and request.form['file']:
-            file = request.form['file']
-    #     if file and allowed_file(file.filename):
-    #         file.save(os.path.join(os.path.abspath(os.path.dirname(__file__)), 'C:/Users/ae.lavrov/python_dp-main/Downloads', secure_filename(file.filename)))
-    #     return 'Uploaded'
-    # # form = UploadFileForm()
-    # # if form.validate_on_submit():
-    # #     file = form.file.data
-    # #     file.save(os.path.join(os.path.abspath(os.path.dirname(__file__)), app.config['UPLOAD_FOLDER'], secure_filename(file.filename)))
-    # #     return ('File has been uploaded')
-    return render_template('magma.html', domain='http://localhost:5000/magma', title="magma", menu=menu)
+@app.route('/encrypt')
+def encrypt(username):
+    if 'userLogged' not in session or session['userLogged'] != username:
+        abort(401)
 
+    return render_template('encrypt.html', title=encrypt, username=username)
 
 @app.route('/download')
 def download():

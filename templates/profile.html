@@ -11,18 +11,43 @@
         </nav>
 </header>
 Welcome to you self page {{ username }}
-<div>
-    {% for i in methods_name -%}
-    <li>
-        <a href="{{ url_for('%s' % i.name_method) }}">{{ i.name_method }}</a>
-    </li>
-    {% endfor -%}
-</div>
-{% for cat,msg in get_flashed_messages(True) %}
-<div class="{{ cat }}">
-    {{ msg }}
-</div>
-{% endfor %}
+
+{% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+    <div class="flash-messages">
+        {%for category, message in messages%}
+        <div class="flash-message flash-{{ category }}">
+            {{ message }}
+        </div>
+    {% endfor %}
+    </div>
+    {% endif %}
+{% endwith %}
+<!--{% for cat,msg in get_flashed_messages(True) %}-->
+<!--<div class="{{ cat }}">-->
+<!--    {{ msg }}-->
+<!--</div>-->
+<!--{% endfor %}-->
+<form action="" method="POST", enctype="multipart/form-data">
+        <div>
+            <label for="file-upload", class="btn third">Загрузите файл</label>
+            <input id="file-upload" type="file", name="filename">
+            <button class="btn third", name="button", type="submit" >Зашифровать</button>
+        </div>
+</form>
+
+<!--<div>-->
+<!--    {% for i in methods_name -%}-->
+<!--    <li>-->
+<!--        <a href="{{ url_for('%s' % i.name_method) }}">{{ i.name_method }}</a>-->
+<!--    </li>-->
+<!--    {% endfor -%}-->
+<!--</div>-->
+<!--{% for cat,msg in get_flashed_messages(True) %}-->
+<!--<div class="{{ cat }}">-->
+<!--    {{ msg }}-->
+<!--</div>-->
+<!--{% endfor %}-->
 <form action="", method="POST">
     <div>
         <input type="submit", name="button", value="Сгенерировать ключи" class="btn third"></input>

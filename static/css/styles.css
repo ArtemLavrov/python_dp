@@ -6,6 +6,42 @@ body {
   font-family: Arial, sans-serif;
 }
 
+.flash-messages {
+  padding: 0.5rem;
+  margin-bottom: 1rem;
+  border-radius: 0.25rem;
+  border: 1px solid #ccc;
+  color: #666;
+}
+
+/* Стиль для блока сообщений категории "success" */
+.flash-success {
+  background-color: #c3e6cb;
+  border-color: #c3e6cb;
+  color: #155724;
+}
+
+/* Стиль для блока сообщений категории "info" */
+.flash-info {
+  background-color: #bee5eb;
+  border-color: #bee5eb;
+  color: #0c5460;
+}
+
+/* Стиль для блока сообщений категории "warning" */
+.flash-warning {
+  background-color: #ffeeba;
+  border-color: #ffeeba;
+  color: #856404;
+}
+
+/* Стиль для блока сообщений категории "error" */
+.flash-error {
+  background-color: #f5c6cb;
+  border-color: #f5c6cb;
+  color: #721c24;
+}
+
 header {
   display: flex;
   flex-direction: row;
@@ -14,9 +50,11 @@ header {
   background-color: #4CAF50;
   padding: 20px 10px;
 }
+
 input[type="file"] {
     display: none;
 }
+
 .custom-file-upload {
     border: 1px solid #ccc;
     display: inline-block;

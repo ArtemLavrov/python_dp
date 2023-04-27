@@ -7,12 +7,13 @@ from flask import Flask, render_template, url_for, request,send_from_directory,s
 # from flask_login import LoginManager
 from flask_sqlalchemy import SQLAlchemy
 from hashlib import sha256
-from RSA import Generate_Keypair
-# from flask_wtf import FlaskForm
-# from wtforms import FileField, SubmitField
-from jinja2 import Template, FileSystemLoader, FunctionLoader, Environment
-from werkzeug.utils import secure_filename
+from RSA import Generate_Keypair, encrypt, decrypt
+from Crypto.Cipher import AES
 from werkzeug.security import generate_password_hash, check_password_hash
+from Crypto.Random import get_random_bytes
+from Crypto.Util.Padding import pad, unpad
+# from jinja2 import Template, FileSystemLoader, FunctionLoader, Environment
+from werkzeug.utils import secure_filename
 # from wtforms.validators import InputRequired
 
 
@@ -71,9 +72,17 @@ class File(db.Model):
     name_file = db.Column(db.String(500))
     file = db.Column(db.BLOB, nullable=True)
     userID_file = db.Column(db.Integer, db.ForeignKey('profiles.id'))
+    AES_key = db.Column(db.Integer)
+    AES_vector = db.Column(db.BLOB, nullable=True)
 
     def __repr__(self):
         return f"<file {self.id}>"
+
+class decipherFile(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    name_decipherfile = db.Column(db.String(500))
+    decipher_file = db.Column(db.BLOB, nullable=True)
+    userID_file = db.Column(db.Integer, db.ForeignKey('profiles.id'))
 
 class HashKey(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -124,23 +133,69 @@ def login():
 def profile(username):
     if 'userLogged' not in session or session['userLogged'] != username:
         abort(401)
-    # crypto_methods = [{'id': 1, 'name_method': 'RSA'},
-    #                   {'id': 2, 'name_method': 'magma'}
-    #                   ]
-    if request.method == 'POST' and 'filename' in request.form:
-        file = request.form["filename"]
+    if request.method == 'POST' and 'filename' in request.files:
+        file = request.files['filename']
         if not file:
             flash('файл не выбран', category='error')
-        elif file and allowed_file(file.filename):
+        if file and allowed_file(file.filename):
+            if not request.form['member']:
+                try:
+                    AES_key = get_random_bytes(16)
+                    cipher=AES.new(AES_key, AES.MODE_CBC)
+                    AES_vector = cipher.iv
+                    cipherfile = cipher.encrypt(pad(file.stream.read(), AES.block_size))
+                    user_id = db.session.query(Profiles).filter(Profiles.name == f"{session['userLogged']}").first()
+                    f = File(name_file=f'encode'+file.filename, file=cipherfile, userID_file=user_id.id, AES_key=AES_key, AES_vector=AES_vector)
+                    db.session.add(f)
+                    db.session.commit()
+                    flash("Файл успешно загружен", category='success')
+                except:
+                    db.session.rollback()
+                    flash("Ошибка загрузки файла", category='error')
+            else:
+                try:
+                    member = request.form['member']
+                    AES_key = get_random_bytes(16)
+                    cipher = AES.new(AES_key, AES.MODE_CBC)
+                    AES_vector = cipher.iv
+                    cipherfile = cipher.encrypt(pad(file.stream.read(), AES.block_size))
+                    user_id = db.session.query(Profiles).filter(Profiles.name == f"{session['userLogged']}").first()
+                    #Сделать выборку ключей клиента в чью сторону будет шифроваться
+                    hash_cipherfile = sha256(cipherfile).hexdigest()
+                    get_private = user_id.private_key
+                    private_list = get_private.split(",")
+                    get_private_tuple = tuple(private_list)
+                    encrypt_msg = encrypt(hash_cipherfile)
+                    f = File(name_file=f'encode' + file.filename, file=cipherfile, userID_file=user_id.id,
+                             AES_key=AES_key, AES_vector=AES_vector)
+                    db.session.add(f)
+                    db.session.commit()
+                    flash("Файл успешно загружен", category='success')
+                except:
+                    db.session.rollback()
+                    flash("Ошибка загрузки файла", category='error')
+        else:
+            flash("Не выбран файл или его расширение не подходит для загрузки", category='error')
+
+    if request.method == 'POST' and 'defilename' in request.files:
+        file = request.files['defilename']
+        if not file:
+            flash('файл не выбран', category='error')
+        if file and allowed_file(file.filename):
             try:
+                filename=file.filename
+                query=db.session.query(File).filter(filename==File.name_file).first()
+                decipherfile=AES.new(query.AES_key, AES.MODE_CBC, query.AES_vector)
+                defile = unpad(decipherfile.decrypt(file.stream.read()),AES.block_size)
                 user_id = db.session.query(Profiles).filter(Profiles.name == f"{session['userLogged']}").first()
-                f = File(name_file=file.filename, file=file.read(), userID_file=user_id.id)
+                f = decipherFile(name_decipherfile=f'decode' + file.filename, decipher_file=defile, userID_file=user_id.id)
                 db.session.add(f)
                 db.session.commit()
                 flash("Файл успешно загружен", category='success')
+
             except:
+                flash('Файл не шифровался этим сайтом')
                 db.session.rollback()
-                flash("Ошибка загрузки файла", category='error')
         else:
             flash("Не выбран файл или его расширение не подходит для загрузки", category='error')
 
@@ -191,12 +246,7 @@ def KeyGenResult(username):
     if 'userLogged' not in session or session['userLogged'] != username:
         abort(401)
     return render_template('KeyGenResult.html', title=KeyGenResult, username=username)
-@app.route('/encrypt')
-def encrypt(username):
-    if 'userLogged' not in session or session['userLogged'] != username:
-        abort(401)
 
-    return render_template('encrypt.html', title=encrypt, username=username)
 
 @app.route('/download')
 def download():
@@ -212,7 +262,24 @@ def download():
 @app.route('/download/<upload_id>')
 def download_file(upload_id):
     upload_file = db.session.query(File).filter(File.id == upload_id).first()
-    return  send_file(BytesIO(upload_file.file), download_name = upload_file.name_file, as_attachment=True)
+    return send_file(BytesIO(upload_file.file), download_name = upload_file.name_file, as_attachment=True)
+
+@app.route('/downloaddecipherfile')
+def downloaddecipher():
+    # if 'userLogged' not in session or session['userLogged'] != username:
+    #     abort(401)
+    username = session['userLogged']
+    name_defiles = []
+    uploaddf = db.session.query(decipherFile).join(Profiles, Profiles.id == decipherFile.userID_file).filter(Profiles.name == f'{username}').all()
+    for i in range(len(uploaddf)):
+        name_defiles.append({'name': uploaddf[i].name_decipherfile, 'id': uploaddf[i].id})
+    return render_template('decrypt.html', name_files=name_defiles)
+
+@app.route('/downloaddecipherfile/<upload_id>')
+def downloaddecipherfile_file(upload_id):
+    upload_file = db.session.query(decipherFile).filter(decipherFile.id == upload_id).first()
+    return send_file(BytesIO(upload_file.decipher_file), download_name=upload_file.name_decipherfile, as_attachment=True)
+
 
 @app.errorhandler(404)
 def pageNotFound(error):
@@ -222,9 +289,6 @@ def pageNotFound(error):
 def pageNotFound(error):
     return render_template('page401.html', title="Неавторизованный пользователь", menu=menu), 404
 
-
-# with app.test_request_context():
-#     print(url_for('profile'))
 
 if __name__ == "__main__":
     app.run(debug=True, host='0.0.0.0')

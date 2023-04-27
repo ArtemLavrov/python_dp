@@ -23,31 +23,67 @@ Welcome to you self page {{ username }}
     </div>
     {% endif %}
 {% endwith %}
-<!--{% for cat,msg in get_flashed_messages(True) %}-->
-<!--<div class="{{ cat }}">-->
-<!--    {{ msg }}-->
-<!--</div>-->
-<!--{% endfor %}-->
-<form action="" method="POST", enctype="multipart/form-data">
-        <div>
-            <label for="file-upload", class="btn third">Загрузите файл</label>
-            <input id="file-upload" type="file", name="filename">
-            <button class="btn third", name="button", type="submit" >Зашифровать</button>
+
+<form action="" method="POST" enctype="multipart/form-data">
+    <div>
+        <label for="file-upload" class="btn third">Загрузите файл</label>
+        <input id="file-upload" type="file" name="filename">
+        <label>Как Вы хотите засшифровать файл ?</label>
+        <select id="select-box">
+            <option value="1">Без подписи</option>
+            <option value="2">Подписать</option>
+        </select>
+        <div id="additional-field" style="display:none;">
+            <label for="additional-input">Выберите участника документаоборота:</label>
+            <input type="text" id="additional-input" name="member">
         </div>
+        <button class="btn third" name="button" type="submit">Зашифровать</button>
+    </div>
 </form>
 
-<!--<div>-->
-<!--    {% for i in methods_name -%}-->
-<!--    <li>-->
-<!--        <a href="{{ url_for('%s' % i.name_method) }}">{{ i.name_method }}</a>-->
-<!--    </li>-->
-<!--    {% endfor -%}-->
-<!--</div>-->
-<!--{% for cat,msg in get_flashed_messages(True) %}-->
-<!--<div class="{{ cat }}">-->
-<!--    {{ msg }}-->
-<!--</div>-->
-<!--{% endfor %}-->
+<script>
+      var selectBox = document.getElementById("select-box");
+      var additionalField = document.getElementById("additional-field");
+
+      selectBox.addEventListener("change", function() {
+        if (selectBox.value === "2") {
+          additionalField.style.display = "block";
+        } else {
+          additionalField.style.display = "none";
+        }
+      });
+</script>
+
+<form action="" method="POST" enctype="multipart/form-data">
+    <div>
+        <label for="defile-upload" class="btn third">Загрузите файл</label>
+        <input id="defile-upload" type="file" name="defilename">
+        <label for="select-box2">Как вы хотите расшифровать файл ?</label>
+        <select id="select-box2">
+            <option value="1">Без подписи</option>
+            <option value="2">Подписать</option>
+        </select>
+        <div id="additional-field2" style="display:none;">
+            <label for="additional-input2">Выберите участника документаоборота:</label>
+            <input type="text" id="additional-input2" name="member">
+        </div>
+        <button class="btn third" name="button" type="submit">Расшифровать</button>
+    </div>
+</form>
+
+<script>
+      var selectBox2 = document.getElementById("select-box2");
+      var additionalField2 = document.getElementById("additional-field2");
+
+      selectBox2.addEventListener("change", function() {
+        if (selectBox2.value === "2") {
+          additionalField2.style.display = "block";
+        } else {
+          additionalField2.style.display = "none";
+        }
+      });
+</script>
+
 <form action="", method="POST">
     <div>
         <input type="submit", name="button", value="Сгенерировать ключи" class="btn third"></input>

@@ -1,0 +1,7 @@
+{% include 'header.html' %}
+{% for i in name_files %}
+<li>
+    <a href="{{ url_for('downloaddecipherfile_file', upload_id = '%s' % i.id) }}">{{ i.name }}</a></br>
+</li>
+{% endfor %}
+{% include 'footer.html' %}

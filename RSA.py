@@ -1,3 +1,4 @@
+import hashlib
 import random
 import math
 from Primes import getPrime
@@ -61,14 +62,11 @@ def decrypt(msg_ciphertext, package):
     return (''.join(msg_plaintext))
 
 if __name__ == "__main__":
-    with open("D:/python_dp/Downloads/New_text_doc.txt", mode="rw") as file:
-        msg = file.read()
-
     public, private = Generate_Keypair()
-    #with open('encription.txt',mode='w', encoding='UTF-8' ) as file:
-    encript_msg = encrypt(msg, public)
+    msg = "Hello world"
+    encript_msg = encrypt(msg, private)
     print(encript_msg)
-    decrypt_msg = decrypt(encript_msg, private)
+    decrypt_msg = decrypt(encript_msg, public)
     print(decrypt_msg)
 
 

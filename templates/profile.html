@@ -29,43 +29,43 @@ Welcome to you self page {{ username }}
         <label for="file-upload" class="btn third">Загрузите файл</label>
         <input id="file-upload" type="file" name="filename">
         <label>Как Вы хотите засшифровать файл ?</label>
-        <select id="select-box">
+        <select id="select-box" name="select-box">
             <option value="1">Без подписи</option>
             <option value="2">Подписать</option>
         </select>
-        <div id="additional-field" style="display:none;">
-            <label for="additional-input">Выберите участника документаоборота:</label>
-            <input type="text" id="additional-input" name="member">
-        </div>
+<!--        <div id="additional-field" style="display:none;">-->
+<!--            <label for="additional-input">Выберите участника документаоборота:</label>-->
+<!--            <input type="text" id="additional-input" name="member1">-->
+<!--        </div>-->
         <button class="btn third" name="button" type="submit">Зашифровать</button>
     </div>
 </form>
 
-<script>
-      var selectBox = document.getElementById("select-box");
-      var additionalField = document.getElementById("additional-field");
+<!--<script>-->
+<!--      var selectBox = document.getElementById("select-box");-->
+<!--      var additionalField = document.getElementById("additional-field");-->
 
-      selectBox.addEventListener("change", function() {
-        if (selectBox.value === "2") {
-          additionalField.style.display = "block";
-        } else {
-          additionalField.style.display = "none";
-        }
-      });
-</script>
+<!--      selectBox.addEventListener("change", function() {-->
+<!--        if (selectBox.value === "2") {-->
+<!--          additionalField.style.display = "block";-->
+<!--        } else {-->
+<!--          additionalField.style.display = "none";-->
+<!--        }-->
+<!--      });-->
+<!--</script>-->
 
 <form action="" method="POST" enctype="multipart/form-data">
     <div>
         <label for="defile-upload" class="btn third">Загрузите файл</label>
         <input id="defile-upload" type="file" name="defilename">
         <label for="select-box2">Как вы хотите расшифровать файл ?</label>
-        <select id="select-box2">
+        <select id="select-box2" name="select-box2">
             <option value="1">Без подписи</option>
             <option value="2">Подписать</option>
         </select>
         <div id="additional-field2" style="display:none;">
             <label for="additional-input2">Выберите участника документаоборота:</label>
-            <input type="text" id="additional-input2" name="member">
+            <input type="text" id="additional-input2" name="member2">
         </div>
         <button class="btn third" name="button" type="submit">Расшифровать</button>
     </div>

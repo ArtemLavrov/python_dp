@@ -1,3 +1,5 @@
+import hashlib
+
 from Crypto.Cipher import AES
 from Crypto.Random import get_random_bytes
 from Crypto.Util.Padding import pad, unpad
@@ -15,7 +17,7 @@ if __name__ == "__main__":
     #     decipher = AES.new(d_key, AES.MODE_CBC, d_vector)
     #     decipherfile = unpad(decipher.decrypt(d_file, AES.block_size))
     #     return decipherfile
-
+    #
     # plaintext = 'Привет мир'.encode('utf-8')
     # print(plaintext)
     #
@@ -24,18 +26,14 @@ if __name__ == "__main__":
     #
     # vector = cipher.iv
     # print(cipher.iv)
-    #
-    # cipher_2 = AES.new(key, AES.MODE_CBC, vector)
-    # plaintext = unpad(cipher_2.decrypt(ciphertext), AES.block_size)
-    # print(plaintext.decode())
-    with open("C:/Users/artio/Downloads/ChatGPT.png", mode='rb') as picture:
-        file = picture.read()
-    ciphertext = cipher.encrypt(pad(file, AES.block_size))
+    str = "Привет мир"
+    msg = bytes(str, encoding='utf-8')
+    hash_msg=hashlib.sha256(msg).hexdigest()
+    key = get_random_bytes(16)
+    cipher = AES.new(key, AES.MODE_CBC)
     vector = cipher.iv
-    deciphertext = AES.new(key, AES.MODE_CBC, vector)
-    plaintext = unpad(deciphertext.decrypt(ciphertext), AES.block_size)
-    print(file)
-    with open("C:/Users/artio/Downloads/cipherChatGPT.png", mode='wb') as cipher_picture:
-        cipher_picture.write(ciphertext)
-    with open("C:/Users/artio/Downloads/decipherChatGPT.png", mode='wb') as decipher_picture:
-        decipher_picture.write(plaintext)
+    ciphertext = cipher.encrypt(pad(msg, AES.block_size))
+    cipher_2 = AES.new(key, AES.MODE_CBC, vector)
+    plaintext = unpad(cipher_2.decrypt(ciphertext), AES.block_size)
+    hash_decipher_msg = hashlib.sha256(plaintext).hexdigest()
+    print(plaintext.decode('utf-8'))

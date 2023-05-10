@@ -21,7 +21,7 @@ from werkzeug.utils import secure_filename
 
 
 UPLOAD_FOLDER = 'D:/python_dp/Downloads'
-ALLOWED_EXTENSIONS = set(['txt', 'pdf', 'png', 'jpg', 'jpeg', 'gif', 'docx'])
+ALLOWED_EXTENSIONS = set(['txt', 'pdf', 'png', 'jpg', 'jpeg', 'gif', 'docx', 'zip'])
 
 def allowed_file(filename):
     return '.' in filename and \
@@ -143,10 +143,11 @@ def profile(username):
         if file and allowed_file(file.filename):
             if request.form['select-box'] == '1':  # Случай когда пользователь не указывает в сторону кого он собирается шифровать свой файл, собственно подписывать тоже
                 try:
+                    file_data = file.stream.read()
                     AES_key = get_random_bytes(16)
                     cipher=AES.new(AES_key, AES.MODE_CBC)
                     AES_vector = cipher.iv
-                    cipherfile = cipher.encrypt(pad(file.stream.read(), AES.block_size))
+                    cipherfile = cipher.encrypt(pad(file_data, AES.block_size))
                     user_id = db.session.query(Profiles).filter(Profiles.name == f"{session['userLogged']}").first()
                     f = File(name_file=f'encode'+file.filename, file=cipherfile, userID_file=user_id.id, AES_key=AES_key, AES_vector=AES_vector)
                     db.session.add(f)
@@ -157,30 +158,33 @@ def profile(username):
                     flash("Ошибка загрузки файла", category='error')
             else:   # Случай когда пользователь собрался подписать файл
                 try:
-                    AES_key = get_random_bytes(16)
-                    type(AES_key)
-                    cipher = AES.new(AES_key, AES.MODE_CBC)
-                    AES_vector = cipher.iv
-                    cipherfile = cipher.encrypt(pad(file.stream.read(), AES.block_size))
+                    file_dataRSA = file.stream.read()
+                    hash_of_file = sha256(file_dataRSA).hexdigest()
                     user_id = db.session.query(Profiles).filter(Profiles.name == f"{session['userLogged']}").first()
-                    hash_cipherfile = sha256(cipherfile).hexdigest()
                     get_private = user_id.private_key
                     private_list = get_private.split(",")
                     get_private_tuple = tuple(map(int, private_list))
-                    encrypt_msg = encrypt(hash_cipherfile, get_private_tuple)
+                    encrypt_msg = encrypt(hash_of_file, get_private_tuple)
                     text_encrypt_msg = list(map(str, encrypt_msg))
                     send_encrypt_msg = ', '.join(text_encrypt_msg)
-                    # zip_filename = f'{file.filename.split(".")[0]}.zip'
+
+
+                    AES_keyRSA = get_random_bytes(16)
+                    cipherRSA = AES.new(AES_keyRSA, AES.MODE_CBC)
+                    AES_vectorRSA = cipherRSA.iv
+                    cipherfileRSA = cipherRSA.encrypt(pad(file_dataRSA, AES.block_size))
+
                     zip_buffer = io.BytesIO()
                     with zipfile.ZipFile(zip_buffer, "w") as zip_file:
-                        zip_file.writestr(f'{file.filename}', cipherfile)
+                        zip_file.writestr(f'{file.filename}', cipherfileRSA)
                         zip_file.writestr(f'signature_{username}.txt', send_encrypt_msg.encode('utf-8'))
-                        zip_file.writestr("KEY.txt", AES_key)
+                        zip_file.writestr("KEY.txt", AES_keyRSA)
+                        zip_file.writestr("hash.txt", hash_of_file)
                     # os.unlink(temp_file.name)
                     zip_data = zip_buffer.getvalue()
 
-                    f = File(name_file=f'encode' + file.filename.split(".")[0] + '.zip', file=zip_data, userID_file=user_id.id,
-                             AES_key=AES_key, AES_vector=AES_vector)
+                    f = File(name_file=file.filename.split(".")[0] + '.zip', file=zip_data, userID_file=user_id.id,
+                             AES_key=AES_keyRSA, AES_vector=AES_vectorRSA)
                     db.session.add(f)
                     db.session.commit()
                     flash("Файл успешно загружен", category='success')
@@ -200,24 +204,44 @@ def profile(username):
                     query=db.session.query(File).filter(file.filename==File.name_file).first()
                     decipherfile=AES.new(query.AES_key, AES.MODE_CBC, query.AES_vector)
                     defile = unpad(decipherfile.decrypt(file.stream.read()),AES.block_size)
+                    hash_decipher_file = sha256(defile).hexdigest()
                     user_id = db.session.query(Profiles).filter(Profiles.name == f"{session['userLogged']}").first()
                     f = decipherFile(name_decipherfile=f'decode' + file.filename, decipher_file=defile, userID_file=user_id.id)
                     db.session.add(f)
                     db.session.commit()
                     flash("Файл успешно загружен", category='success')
                 except:
-                    flash('Файл не шифровался этим сайтом')
+                    flash('Файл не шифровался этим сайтом', category='error')
                     db.session.rollback()
             else:
-                query = db.session.query(File).filter(file.filename == File.name_file).first()
-                zip_buf = file.stream.read()
-                with zipfile.ZipFile(zip_buf, "r") as zip_data:
-                    decipher = zip_data.read(zip_data.filelist[0])
+                query = db.session.query(File).filter(File.name_file == file.filename).first()
+                with zipfile.ZipFile(io.BytesIO(file.stream.read()), "r") as zip_data:
+                    file_z = zip_data.read(zip_data.filelist[0])
                     sign = zip_data.read(zip_data.filelist[1])
                     key = zip_data.read(zip_data.filelist[2])
-                    filename = zip_data.filename(zip_data.filelist[0])
+                member = request.form['member']
+                get_public = db.session.query(Profiles).filter(Profiles.name == member).first()
+                public_list = get_public.public_key.split(",")
+                public_tuple = tuple(map(int, public_list))
+                str_sign_elem = sign.decode().split(',')
+                int_str_sign_elem = [int(element) for element in str_sign_elem]
+                get_hash_shifr_file = decrypt(int_str_sign_elem, public_tuple)
+                decipherfileRSA = AES.new(key, AES.MODE_CBC, query.AES_vector)
+                defileRSA = unpad(decipherfileRSA.decrypt(file_z), AES.block_size)
+                hash_of_defile = sha256(defileRSA).hexdigest()
+                if get_hash_shifr_file == hash_of_defile:
+                    try:
+                        user_id = db.session.query(Profiles).filter(Profiles.name == f"{session['userLogged']}").first()
+                        f = decipherFile(name_decipherfile=f'decode' + str(zip_data.namelist()[0]), decipher_file=defileRSA, userID_file=user_id.id)
+                        db.session.add(f)
+                        db.session.commit()
+                        flash("Файл успешно расшифрован и вы можете его скачать", category='success')
+                    except:
+                        flash('В процессе дешефровки документа произошла ошибка', category='error')
+                else:
+                    flash('В процессе документа оборота файл был изменён!', category='error')
         else:
-            flash("Не выбран файл или его расширение не подходит для загрузки", category='error')
+            flash("Расширение файла не подходит для загрузки", category='error')
 
     if request.method == 'POST' and request.form["button"]:
         if not Profiles.query.filter(Profiles.name == f'{username}').first().public_key or not Profiles.query.filter(Profiles.name == f'{username}').first().private_key:

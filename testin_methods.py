@@ -12,5 +12,5 @@
 
 import zipfile
 
-with zipfile.ZipFile("C:/Users/ae.lavrov/Downloads/encodeНовый текстовый документ.zip", mode = "rb") as zip_data:
-    decipherfile =
+# with zipfile.ZipFile("C:/Users/ae.lavrov/Downloads/encodeНовый текстовый документ.zip", mode = "rb") as zip_data:
+#     decipherfile =

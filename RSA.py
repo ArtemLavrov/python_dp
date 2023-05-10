@@ -66,6 +66,7 @@ if __name__ == "__main__":
     msg = "Hello world"
     encript_msg = encrypt(msg, private)
     print(encript_msg)
+    print(type(encript_msg[0]))
     decrypt_msg = decrypt(encript_msg, public)
     print(decrypt_msg)
 

@@ -1,7 +1,41 @@
-{% include 'header.html' %}
+{% extends 'header.html' %}
+{% block content %}
+<header>
+<!--Новая версия навигационного поля    -->
+    <nav class="navbar navbar-expand-md navbar-light bg-light sticky-top">
+        <div  class="container-fluid">
+            <a href="#" class="navbar-brand"><img src="{{ url_for('static', filename='logo.svg') }}" alt="Логотип"></a>
+            <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarResponsive">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarResponsive">
+                <ul class="navbar-nav ml-auto">
+                    <li class="nav-item">
+                        <a href="#" class="nav-link active">Главная</a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="{{ url_for('login') }}" class="nav-link">Мой профиль</a>
+                    </li>
+                    <li class="nav-item">
+                        <a href=" {{ url_for('logout') }} " class="nav-link">Выйти</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+</header>
+
+
 {% for i in name_files %}
-<li>
+<div style="display: flex; align-items: center;">
     <a href="{{ url_for('download_file', upload_id = '%s' % i.id) }}">{{ i.name }}</a></br>
-</li>
+    <form action="{{ url_for('delete_file') }}" method="POST" style="display: inline;">
+        <input type="hidden" name="filename" value="{{ i.name }}">
+        <button type="submit" class="btn btn-danger">Удалить</button>
+    </form>
+</div>
 {% endfor %}
+
+
+{% endblock %}
 {% include 'footer.html' %}

@@ -1,0 +1,52 @@
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;700&display=swap');
+
+body, html{
+    width: 100%;
+    heigh: 100%;
+    font-family: 'Poppins', san-serif;
+    color: #222;
+}
+
+.navbar-brand img {width: 150px}
+
+.navbar-nav li {
+    padding-right: 20px;
+}
+
+.nav-link {font-size: 1.1em !important}
+
+.carousel-item {
+    justify-content: center;
+    align-items: center;
+    height: 500px; /* Высота элементов карусели */
+}
+
+.carousel-inner {
+    heigh: 500px;
+    width: 100%;
+}
+
+.carousel-caption{
+    position: absolute;
+    top: 50%;
+    transform: translateY(-80%);
+    text-shadow: 1px 1px 10px #000;
+}
+
+.slide-1 {
+  background-color: rgba(128, 128, 128, 0.5);
+  background-size: cover;
+  background-position: center;
+}
+
+.slide-2 {
+  background-color: rgba(128, 128, 128, 0.5);
+  background-size: cover;
+  background-position: center;
+}
+
+.slide-3 {
+  background-color: rgba(128, 128, 128, 0.5);
+  background-size: cover;
+  background-position: center;
+}

@@ -7,6 +7,7 @@ import tempfile
 
 
 from flask import Flask, render_template, url_for, request,send_from_directory,session, redirect, abort, flash, send_file
+from flask_bootstrap import Bootstrap
 # from flask_login import LoginManager
 from flask_sqlalchemy import SQLAlchemy
 from hashlib import sha256
@@ -30,6 +31,7 @@ def allowed_file(filename):
 
 #Создание экземлпяра объекта
 app = Flask(__name__)
+# bootstrap = Bootstrap(app)
 
 
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
@@ -41,13 +43,8 @@ app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 db = SQLAlchemy(app)
 
 
-
 menu = ["Авторизация", "Полезная информация", "Обратная связь"]
 
-
-# class UploadFileForm(FlaskForm):
-#     file = FileField("File", validators=[InputRequired()])
-#     submit = SubmitField("Upload File")
 
 class Users(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -87,6 +84,8 @@ class decipherFile(db.Model):
     decipher_file = db.Column(db.BLOB, nullable=True)
     userID_file = db.Column(db.Integer, db.ForeignKey('profiles.id'))
 
+    def __repr__(self):
+        return f"<file {self.id}>"
 class HashKey(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     id_user = db.Column(db.Integer, db.ForeignKey('profiles.user_id'))
@@ -95,8 +94,6 @@ class HashKey(db.Model):
 
     def __repr__(self):
         return f"<hash_key {self.id}>"
-
-
 
 
 @app.route("/register", methods=["POST", "GET"])
@@ -120,17 +117,25 @@ def register():
 
 @app.route("/login", methods=["POST", "GET"])
 def login():
-    if request.method == 'POST' and request.form[
-        'username'] == f"{db.session.query(Profiles.name).filter(Profiles.name == request.form['username']).first()[0]}" and check_password_hash(
-            db.session.query(Users, Profiles).join(Profiles, Users.id == Profiles.user_id).filter(
-                    request.form['username'] == Profiles.name and request.form['psw'] == Users.psw).first()[0].psw,
-            request.form['psw']):
-        session.permanent = True
-        session['userLogged'] = request.form['username']
-        return redirect(url_for('profile', username=session['userLogged']))
+    if request.method == 'POST':
+        try:
+            user = db.session.query(Users, Profiles).join(Profiles, Users.id == Profiles.user_id).filter(
+                request.form['username'] == Profiles.name and request.form['psw'] == Users.psw).first()
+
+            if user and check_password_hash(user[0].psw, request.form['psw']):
+                session.permanent = True
+                session['userLogged'] = request.form['username']
+                return redirect(url_for('profile', username=session['userLogged']))
+            else:
+                flash("Неверное имя пользователя или пароль", category="error")
+        except:
+            flash("Данный пользователь не зарегистрирован", category="error")
+
     elif 'userLogged' in session:
         return redirect(url_for('profile', username=session['userLogged']))
+
     return render_template('login.html', title="Авторизация", menu=menu)
+
 
 @app.route("/profile/<username>", methods=['GET','POST'])
 def profile(username):
@@ -267,23 +272,6 @@ def logout():
     session.pop("userLogged", None)
     return redirect(url_for("login"))
 
-# @app.route('/RSA', methods=['GET', 'POST'])
-# def RSA():
-#     if request.method == 'POST' and request.files['filename']:
-#         file = request.files['filename']
-#         if file and allowed_file(file.filename):
-#             try:
-#                 user_id = db.session.query(Profiles).filter(Profiles.name == f"{session['userLogged']}").first()
-#                 f = File(name_file=file.filename, file=file.read(), userID_file=user_id.id)
-#                 db.session.add(f)
-#                 db.session.commit()
-#                 flash("Файл успешно загружен")
-#             except:
-#                 db.session.rollback()
-#                 flash("Ошибка загрузки файла")
-#     else:
-#         flash("Не выбран файл", category='error')
-#     return render_template('RSA.html', title="RSA")
 
 @app.route('/KeyGenResult/<username>', methods=['GET','POST'])
 def KeyGenResult(username):
@@ -294,8 +282,8 @@ def KeyGenResult(username):
 
 @app.route('/download')
 def download():
-    # if 'userLogged' not in session or session['userLogged'] != username:
-    #     abort(401)
+    if 'userLogged' not in session:
+        abort(401)
     username = session['userLogged']
     name_files = []
     upload = db.session.query(File).join(Profiles, Profiles.id == File.userID_file).filter(Profiles.name == f'{username}').all()
@@ -324,6 +312,19 @@ def downloaddecipherfile_file(upload_id):
     upload_file = db.session.query(decipherFile).filter(decipherFile.id == upload_id).first()
     return send_file(BytesIO(upload_file.decipher_file), download_name=upload_file.name_decipherfile, as_attachment=True)
 
+@app.route('/download', methods=['POST'])
+def delete_file():
+    file_name = request.form.get('filename')
+    file = db.session.query(File).filter(File.name_file == file_name).first()
+    try:
+        if file:
+            db.session.delete(file)
+            db.session.commit()
+        flash('Файл успешно удалён')
+    except:
+        flash('Что то пошло не так')
+    return redirect(url_for("download"))
+
 
 @app.errorhandler(404)
 def pageNotFound(error):
@@ -331,7 +332,7 @@ def pageNotFound(error):
 
 @app.errorhandler(401)
 def pageNotFound(error):
-    return render_template('page401.html', title="Неавторизованный пользователь", menu=menu), 404
+    return render_template('page401.html', title="Неавторизованный пользователь", menu=menu), 401
 
 
 if __name__ == "__main__":

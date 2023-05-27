@@ -1,7 +1,38 @@
-{% include 'header.html' %}
+{% extends 'header.html' %}
+{% block content %}
+<header>
+<!--Новая версия навигационного поля    -->
+    <nav class="navbar navbar-expand-md navbar-light bg-light sticky-top">
+        <div  class="container-fluid">
+            <a href="#" class="navbar-brand"><img src="{{ url_for('static', filename='logo.svg') }}" alt="Логотип"></a>
+            <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarResponsive">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarResponsive">
+                <ul class="navbar-nav ml-auto">
+                    <li class="nav-item">
+                        <a href="#" class="nav-link active">Главная</a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="#" class="nav-link">Скачать файл</a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="#" class="nav-link">Мой профиль</a>
+                    </li>
+                    <li class="nav-item">
+                        <a href=" {{ url_for('logout') }} " class="nav-link">Выйти</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+</header>
+
+
 {% for i in name_files %}
 <li>
     <a href="{{ url_for('downloaddecipherfile_file', upload_id = '%s' % i.id) }}">{{ i.name }}</a></br>
 </li>
 {% endfor %}
+{% endblock %}
 {% include 'footer.html' %}

@@ -8,8 +8,6 @@ _fastmath = None
 
 
 def ceil_div(n, d):
-    """Return ceil(n/d), that is, the smallest integer r such that r*d >= n"""
-
     if d == 0:
         raise ZeroDivisionError()
     if (n < 0) or (d < 0):
@@ -21,21 +19,12 @@ def ceil_div(n, d):
 
 
 def size (N):
-    """Returns the size of the number N in bits."""
-
     if N < 0:
         raise ValueError("Size in bits only available for non-negative numbers")
     return N.bit_length()
 
 
 def getRandomInteger(N, randfunc=None):
-    """Return a random number at most N bits long.
-    If :data:`randfunc` is omitted, then :meth:`Random.get_random_bytes` is used.
-    .. deprecated:: 3.0
-        This function is for internal use only and may be renamed or removed in
-        the future. Use :func:`Crypto.Random.random.getrandbits` instead.
-    """
-
     if randfunc is None:
         randfunc = Random.get_random_bytes
 
@@ -48,13 +37,6 @@ def getRandomInteger(N, randfunc=None):
     return value
 
 def getRandomRange(a, b, randfunc=None):
-    """Return a random number *n* so that *a <= n < b*.
-    If :data:`randfunc` is omitted, then :meth:`Random.get_random_bytes` is used.
-    .. deprecated:: 3.0
-        This function is for internal use only and may be renamed or removed in
-        the future. Use :func:`Crypto.Random.random.randrange` instead.
-    """
-
     range_ = b - a - 1
     bits = size(range_)
     value = getRandomInteger(bits, randfunc)
@@ -63,14 +45,6 @@ def getRandomRange(a, b, randfunc=None):
     return a + value
 
 def getRandomNBitInteger(N, randfunc=None):
-    """Return a random number with exactly N-bits,
-    i.e. a random number between 2**(N-1) and (2**N)-1.
-    If :data:`randfunc` is omitted, then :meth:`Random.get_random_bytes` is used.
-    .. deprecated:: 3.0
-        This function is for internal use only and may be renamed or removed in
-        the future.
-    """
-
     value = getRandomInteger (N-1, randfunc)
     value |= 2 ** (N-1)                # Ensure high bit is set
     assert size(value) >= N
@@ -84,9 +58,6 @@ if sys.version_info[:2] >= (3, 5):
 else:
 
     def GCD(x,y):
-        """Greatest Common Denominator of :data:`x` and :data:`y`.
-        """
-
         x = abs(x) ; y = abs(y)
         while x > 0:
             x, y = y % x, x
@@ -96,8 +67,6 @@ else:
 if sys.version_info[:2] >= (3, 8):
 
     def inverse(u, v):
-        """The inverse of :data:`u` *mod* :data:`v`."""
-
         if v == 0:
             raise ZeroDivisionError("Modulus cannot be zero")
         if v < 0:
@@ -108,8 +77,6 @@ if sys.version_info[:2] >= (3, 8):
 else:
 
     def inverse(u, v):
-        """The inverse of :data:`u` *mod* :data:`v`."""
-
         if v == 0:
             raise ZeroDivisionError("Modulus cannot be zero")
         if v < 0:
@@ -127,14 +94,8 @@ else:
             u1 = u1 + v
         return u1
 
-# Given a number of bits to generate and a random generation function,
-# find a prime number of the appropriate size.
 
 def getPrime(N, randfunc=None):
-    """Return a random N-bit prime number.
-    N must be an integer larger than 1.
-    If randfunc is omitted, then :meth:`Random.get_random_bytes` is used.
-    """
     if randfunc is None:
         randfunc = Random.get_random_bytes
 
@@ -149,21 +110,11 @@ def getPrime(N, randfunc=None):
 
 
 def _rabinMillerTest(n, rounds, randfunc=None):
-    """_rabinMillerTest(n:long, rounds:int, randfunc:callable):int
-    Tests if n is prime.
-    Returns 0 when n is definitely composite.
-    Returns 1 when n is probably prime.
-    Returns 2 when n is definitely prime.
-    If randfunc is omitted, then Random.new().read is used.
-    This function is for internal use only and may be renamed or removed in
-    the future.
-    """
-    # check special cases (n==2, n even, n < 2)
     if n < 3 or (n & 1) == 0:
         return n == 2
-    # n might be very large so it might be beneficial to precalculate n-1
+
     n_1 = n - 1
-    # determine m and b so that 2**b * m = n - 1 and b maximal
+
     b = 0
     m = n_1
     while (m & 1) == 0:
@@ -171,14 +122,14 @@ def _rabinMillerTest(n, rounds, randfunc=None):
         m >>= 1
 
     tested = []
-    # we need to do at most n-2 rounds.
+
     for i in iter_range (min (rounds, n-2)):
-        # randomly choose a < n and make sure it hasn't been tested yet
+
         a = getRandomRange (2, n, randfunc)
         while a in tested:
             a = getRandomRange (2, n, randfunc)
         tested.append (a)
-        # do the rabin-miller test
+
         z = pow (a, m, n) # (a**m) % n
         if z == 1 or z == n_1:
             continue
@@ -195,45 +146,9 @@ def _rabinMillerTest(n, rounds, randfunc=None):
     return 1
 
 def getStrongPrime(N, e=0, false_positive_prob=1e-6, randfunc=None):
-    r"""
-    Return a random strong *N*-bit prime number.
-    In this context, *p* is a strong prime if *p-1* and *p+1* have at
-    least one large prime factor.
-    Args:
-        N (integer): the exact length of the strong prime.
-          It must be a multiple of 128 and > 512.
-        e (integer): if provided, the returned prime (minus 1)
-          will be coprime to *e* and thus suitable for RSA where
-          *e* is the public exponent.
-        false_positive_prob (float):
-          The statistical probability for the result not to be actually a
-          prime. It defaults to 10\ :sup:`-6`.
-          Note that the real probability of a false-positive is far less. This is
-          just the mathematically provable limit.
-        randfunc (callable):
-          A function that takes a parameter *N* and that returns
-          a random byte string of such length.
-          If omitted, :func:`Crypto.Random.get_random_bytes` is used.
-    Return:
-        The new strong prime.
-    .. deprecated:: 3.0
-        This function is for internal use only and may be renamed or removed in
-        the future.
-    """
-
-    # This function was implemented following the
-    # instructions found in the paper:
-    #   "FAST GENERATION OF RANDOM, STRONG RSA PRIMES"
-    #   by Robert D. Silverman
-    #   RSA Laboratories
-    #   May 17, 1997
-    # which by the time of writing could be freely downloaded here:
-    # http://citeseerx.ist.psu.edu/viewdoc/download?doi=10.1.1.17.2713&rep=rep1&type=pdf
-
     if randfunc is None:
         randfunc = Random.get_random_bytes
 
-    # Use the accelerator if available
     if _fastmath is not None:
         return _fastmath.getStrongPrime(long(N), long(e), false_positive_prob,
             randfunc)
@@ -243,12 +158,8 @@ def getStrongPrime(N, e=0, false_positive_prob=1e-6, randfunc=None):
 
     rabin_miller_rounds = int(math.ceil(-math.log(false_positive_prob)/math.log(4)))
 
-    # calculate range for X
-    #   lower_bound = sqrt(2) * 2^{511 + 128*x}
-    #   upper_bound = 2^{512 + 128*x} - 1
     x = (N - 512) >> 7
-    # We need to approximate the sqrt(2) in the lower_bound by an integer
-    # expression because floating point math overflows with these numbers
+
     lower_bound = (14142135623730950489 * (2 ** (511 + 128*x))) //  10000000000000000000
     upper_bound = (1 << (512 + 128*x)) - 1
     # Randomly choose X in calculated range
@@ -326,21 +237,6 @@ def getStrongPrime(N, e=0, false_positive_prob=1e-6, randfunc=None):
     return X
 
 def isPrime(N, false_positive_prob=1e-6, randfunc=None):
-    r"""Test if a number *N* is a prime.
-    Args:
-        false_positive_prob (float):
-          The statistical probability for the result not to be actually a
-          prime. It defaults to 10\ :sup:`-6`.
-          Note that the real probability of a false-positive is far less.
-          This is just the mathematically provable limit.
-        randfunc (callable):
-          A function that takes a parameter *N* and that returns
-          a random byte string of such length.
-          If omitted, :func:`Crypto.Random.get_random_bytes` is used.
-    Return:
-        `True` is the input is indeed prime.
-    """
-
     if randfunc is None:
         randfunc = Random.get_random_bytes
 
@@ -365,23 +261,6 @@ def isPrime(N, false_positive_prob=1e-6, randfunc=None):
 import struct
 
 def long_to_bytes(n, blocksize=0):
-    """Convert a positive integer to a byte string using big endian encoding.
-    If :data:`blocksize` is absent or zero, the byte string will
-    be of minimal length.
-    Otherwise, the length of the byte string is guaranteed to be a multiple
-    of :data:`blocksize`. If necessary, zeroes (``\\x00``) are added at the left.
-    .. note::
-        In Python 3, if you are sure that :data:`n` can fit into
-        :data:`blocksize` bytes, you can simply use the native method instead::
-            >>> n.to_bytes(blocksize, 'big')
-        For instance::
-            >>> n = 80
-            >>> n.to_bytes(2, 'big')
-            b'\\x00P'
-        However, and unlike this ``long_to_bytes()`` function,
-        an ``OverflowError`` exception is raised if :data:`n` does not fit.
-    """
-
     if n < 0 or blocksize < 0:
         raise ValueError("Values must be non-negative")
 
@@ -426,14 +305,6 @@ def long_to_bytes(n, blocksize=0):
 
 
 def bytes_to_long(s):
-    """Convert a byte string to a long integer (big endian).
-    In Python 3.2+, use the native method instead::
-        >>> int.from_bytes(s, 'big')
-    For instance::
-        >>> int.from_bytes(b'\x00P', 'big')
-        80
-    This is (essentially) the inverse of :func:`long_to_bytes`.
-    """
     acc = 0
 
     unpack = struct.unpack

@@ -1,47 +1,78 @@
 {% extends 'header.html' %}
 {% block content %}
     <header>
-        <div class="wrap-logo">
-            <a href="#logo" class="logo">Логотип сайта</a>
-        </div>
-        <nav>
-            <a class="active" href="#home">Главная</a>
-            <a href="#about">О нас</a>
-            <a href="{{ url_for('login') }}">Войти</a>
+        <nav class="navbar navbar-expand-md navbar-light bg-light sticky-top">
+            <div  class="container-fluid">
+                <a href="#" class="navbar-brand"><img src="{{ url_for('static', filename='logo.svg') }}" alt="Логотип"></a>
+                <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarResponsive">
+                    <span class="navbar-toggler-icon"></span>
+                </button>
+                <div class="collapse navbar-collapse" id="navbarResponsive">
+                    <ul class="navbar-nav ml-auto">
+                        <li class="nav-item">
+                            <a href="#" class="nav-link active">Главная</a>
+                        </li>
+                        <li class="nav-item">
+                            <a href="#" class="nav-link">Войти</a>
+                        </li>
+                    </ul>
+                </div>
+            </div>
         </nav>
     </header>
 
-<form action="", method="post">
-  <div class="container">
-    <h1>Register</h1>
-    <p>Please fill in this form to create an account.</p>
-    <hr>
-    <label for="Name"><b>Your name</b></label>
-    <input type="text" placeholder="Enter you nickname" name="name" required>
 
-    <label for="Years"><b>How are you old</b></label>
-    <input type="text" placeholder="Enter you ege" name="old" required>
 
-    <label for="City"><b>Where are you from</b></label>
-    <input type="text" placeholder="Enter you city" name="city" required>
+<div class="container">
+    <h1>Регистрация</h1>
+    <form id="registration-form" action="", method="post">
+        <div class="form-group">
+            <label for="username">Имя пользователя</label>
+            <input type="text" class="form-control" id="username" name="name" placeholder="Введите имя пользователя">
+        </div>
+        <div class="form-group">
+            <label for="old">Возраст</label>
+            <input type="text" class="form-control" id="old" name="old" placeholder="Ваш возраст">
+        </div>
+        <div class="form-group">
+            <label for="City">Город</label>
+            <input type="text" class="form-control" id="City" name="city" placeholder="Ваш город">
+        </div>
+        <div class="form-group">
+            <label for="email">Email</label>
+            <input type="text" class="form-control" id="email" name="email" placeholder="Email">
+        </div>
+        <div class="form-group">
+            <label for="password">Пароль</label>
+            <input type="password" class="form-control" id="password" name="psw" placeholder="Введите пароль"
+                   pattern="^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)[a-zA-Z\d]{8,}$"
+                   title="Пароль должен содержать не менее 8 символов, включая заглавные и строчные буквы, и цифры.">
+        </div>
+        <div class="form-group">
+            <label for="confirm_password">Подтверждение пароля</label>
+            <input type="password" class="form-control" id="confirm_password" name="psw2" placeholder="Подтвердите пароль">
+            <small id="password-mismatch" class="text-danger d-none">Пароли не совпадают</small>
+        </div>
+        <button type="submit" class="btn btn-primary">Зарегистрироваться</button>
+    </form>
+</div>
 
-    <label for="email"><b>Email</b></label>
-    <input type="text" placeholder="Enter Email" name="email" required>
+<script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.3/dist/umd/popper.min.js"></script>
+<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+<script>
+    $(document).ready(function() {
+        $('#registration-form').submit(function(event) {
+            var password = $('#password').val();
+            var confirm_password = $('#confirm_password').val();
 
-    <label for="psw"><b>Password</b></label>
-    <input type="password" placeholder="Enter Password" name="psw" required>
+            if (password !== confirm_password) {
+                $('#password-mismatch').removeClass('d-none');
+                event.preventDefault();
+            }
+        });
+    });
+</script>
 
-    <label for="psw-repeat"><b>Repeat Password</b></label>
-    <input type="password" placeholder="Repeat Password" name="psw2" required>
-    <hr>
-<!--    <p>By creating an account you agree to our <a href="#">Terms & Privacy</a>.</p>-->
-
-    <button type="submit" class="registerbtn">Register</button>
-  </div>
-
-  <div class="container signin">
-    <p>Already have an account? <a href="#">Sign in</a>.</p>
-  </div>
-</form>
 {% include 'footer.html' %}
 {% endblock %}

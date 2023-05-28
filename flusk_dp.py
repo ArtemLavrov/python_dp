@@ -7,7 +7,6 @@ import tempfile
 
 
 from flask import Flask, render_template, url_for, request,send_from_directory,session, redirect, abort, flash, send_file
-from flask_bootstrap import Bootstrap
 # from flask_login import LoginManager
 from flask_sqlalchemy import SQLAlchemy
 from hashlib import sha256
@@ -209,7 +208,7 @@ def profile(username):
                     query=db.session.query(File).filter(file.filename==File.name_file).first()
                     decipherfile=AES.new(query.AES_key, AES.MODE_CBC, query.AES_vector)
                     defile = unpad(decipherfile.decrypt(file.stream.read()),AES.block_size)
-                    hash_decipher_file = sha256(defile).hexdigest()
+                    # hash_decipher_file = sha256(defile).hexdigest()
                     user_id = db.session.query(Profiles).filter(Profiles.name == f"{session['userLogged']}").first()
                     f = decipherFile(name_decipherfile=f'decode' + file.filename, decipher_file=defile, userID_file=user_id.id)
                     db.session.add(f)
@@ -248,7 +247,7 @@ def profile(username):
         else:
             flash("Расширение файла не подходит для загрузки", category='error')
 
-    if request.method == 'POST' and request.form["button"]:
+    if request.method == 'POST' and 'button' in request.form:
         if not Profiles.query.filter(Profiles.name == f'{username}').first().public_key or not Profiles.query.filter(Profiles.name == f'{username}').first().private_key:
             try:
                 private, public = Generate_Keypair()

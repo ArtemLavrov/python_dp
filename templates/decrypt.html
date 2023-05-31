@@ -14,10 +14,10 @@
                         <a href="#" class="nav-link active">Главная</a>
                     </li>
                     <li class="nav-item">
-                        <a href="#" class="nav-link">Скачать файл</a>
+                        <a href="{{ url_for('login') }}" class="nav-link">Скачать зашифрованный файл</a>
                     </li>
                     <li class="nav-item">
-                        <a href="#" class="nav-link">Мой профиль</a>
+                        <a href="{{ url_for('login') }}" class="nav-link">Мой профиль</a>
                     </li>
                     <li class="nav-item">
                         <a href=" {{ url_for('logout') }} " class="nav-link">Выйти</a>
@@ -30,9 +30,13 @@
 
 
 {% for i in name_files %}
-<li>
-    <a href="{{ url_for('downloaddecipherfile_file', upload_id = '%s' % i.id) }}">{{ i.name }}</a></br>
-</li>
+<div style="display: flex; align-items: center; justify-content: center;">
+    <a href="{{ url_for('downloaddecipherfile_file', upload_id = '%s' % i.id) }}" style="margin-right: 80vh; margin-bottom: 3vh;">{{ i.name }}</a></br>
+    <form action="{{ url_for('delete_defile') }}" method="POST" style="display: inline;">
+        <input type="hidden" name="defilename" value="{{ i.name }}">
+        <button type="submit" class="btn btn-danger">Удалить</button>
+    </form>
+</div>
 {% endfor %}
 {% endblock %}
 {% include 'footer.html' %}

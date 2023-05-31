@@ -54,7 +54,7 @@
                 <h1 class="display-2">Генерация ключей</h1>
                 <form action="", method="POST">
                     <div>
-                        <input type="submit", name="button", value="Сгенерировать ключи" class="btn btn-outline-light btn-lg">
+                        <input type="submit", name="button1", value="Сгенерировать ключи" class="btn btn-outline-light btn-lg">
                     </div>
                 </form>
             </div>
@@ -75,7 +75,7 @@
                             <option value="2">С использованием цифровой подписи</option>
                         </select>
                     </div>
-                    <button class="btn btn-outline-light btn-lg" name="button" type="submit">Зашифровать</button>
+                    <button class="btn btn-outline-light btn-lg" name="button2" type="submit">Зашифровать</button>
                 </form>
             </div>
         </div>
@@ -100,7 +100,7 @@
                               <label for="additional-input2">Выберите участника документаоборота:</label>
                               <input type="text" id="additional-input2" name="member" class="form-control">
                           </div>
-                          <button type="submit" name class="btn btn-primary">Загрузить</button>
+                          <button type="submit" name="button3" class="btn btn-outline-light btn-lg">Загрузить</button>
                     </form>
                 </div>
             </div>
@@ -118,15 +118,33 @@
 <div class="conteiner-fluid">
     <div class="row jumbotron">
         <div class="col-xs-12 col-sm-12 col-md-9 col-lg-9 col-xl-10">
+            <h1 class="display-2">Инструкция пользователя</h1>
             <p class="lead">
+                1. После регистрации на нашем сайте с последующим входом в аккаунт, Вас привествует пользовательский интерфейс, с помощью которого можете зашифровывать или расшифровывать документы.
+            </p>
+            <p class="lead">
+                2. Используя карусель на сайте Вы можете выбрать предложенные способы взаимодействия с документом такие как: шифрование(AES/AES+RSA) и дешифрование(AES/AES+RSA).
+            </p>
+            <p class="lead">
+                3. Заметим, что на сайте поддерживаются шифрования и дешифрования определённого количества форматов документов: 'txt, pdf, png, jpg, jpeg, gif, docx, zip'.
+            </p>
+            <p class="lead">
+                4. После того как Вы зашифруете или расшифруете файл, в зависимости от его размера и условий шифрования или дешифрования сотвественно (размер файла влияет на скорость шифрования и дешифрования),
+                Вы сможете его скачать перейдя в навигационном меню на соответствующую ссылку.
+            </p>
+            <h1 class="display-5">Примечание</h1>
+            <p class="lead">
+                1. Файлы зашифрованные на стороннем ресурсе не могут быть расшифрованы с помощью данного сайта. Для гармоничной работы Вам необходимо зашифровать документы у нас, чтобы корректно их расшифровать.
+            </p>
+            <p class="lead">
+                2. Для подписания документа, перед этапом шифрования Вам необходимо сгенерировать ключи. Генерация ключей происходит по алгоритму RSA.
+            </p>
         </div>
         <div class="col-xs-12 col-sm-12 col-md-3 col-lg-3 col-xl-2">
 
         </div>
     </div>
 </div>
-
-
 <script>
       var selectBox2 = document.getElementById("select-box2");
       var additionalField2 = document.getElementById("additional-field2");
@@ -139,7 +157,5 @@
         }
       });
 </script>
-<script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
-<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
-{% endblock %}
 {% include 'footer.html' %}
+{% endblock %}

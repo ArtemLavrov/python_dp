@@ -145,7 +145,7 @@ def profile(username):
         if not file:
             flash('файл не выбран', category='error')
         if file and allowed_file(file.filename):
-            if request.form['select-box'] == '1':  # Случай когда пользователь не указывает в сторону кого он собирается шифровать свой файл, собственно подписывать тоже
+            if request.form['select-box'] == '1':
                 try:
                     file_data = file.stream.read()
                     AES_key = get_random_bytes(16)
@@ -156,7 +156,7 @@ def profile(username):
                     f = File(name_file=f'encode'+file.filename, file=cipherfile, userID_file=user_id.id, AES_key=AES_key, AES_vector=AES_vector)
                     db.session.add(f)
                     db.session.commit()
-                    flash("Файл успешно загружен", category='success')
+                    flash("Файл успешно зашифрован ", category='success')
                 except:
                     db.session.rollback()
                     flash("Ошибка загрузки файла", category='error')
@@ -182,7 +182,7 @@ def profile(username):
                     with zipfile.ZipFile(zip_buffer, "w") as zip_file:
                         zip_file.writestr(f'{file.filename}', cipherfileRSA)
                         zip_file.writestr(f'signature_{username}.txt', send_encrypt_msg.encode('utf-8'))
-                        zip_file.writestr("KEY.txt", AES_keyRSA)
+                        zip_file.writestr("KEY.txt", AES_keyRSA) #тут передаём только вектор
                         zip_file.writestr("hash.txt", hash_of_file)
                     # os.unlink(temp_file.name)
                     zip_data = zip_buffer.getvalue()
@@ -247,7 +247,7 @@ def profile(username):
         else:
             flash("Расширение файла не подходит для загрузки", category='error')
 
-    if request.method == 'POST' and 'button' in request.form:
+    if request.method == 'POST' and 'button1' in request.form:
         if not Profiles.query.filter(Profiles.name == f'{username}').first().public_key or not Profiles.query.filter(Profiles.name == f'{username}').first().private_key:
             try:
                 private, public = Generate_Keypair()
@@ -323,6 +323,19 @@ def delete_file():
     except:
         flash('Что то пошло не так')
     return redirect(url_for("download"))
+
+@app.route('/downloaddecipherfile', methods=['POST'])
+def delete_defile():
+    defile_name = request.form.get('defilename')
+    file = db.session.query(decipherFile).filter(decipherFile.name_decipherfile == defile_name).first()
+    try:
+        if file:
+            db.session.delete(file)
+            db.session.commit()
+        flash('Файл успешно удалён')
+    except:
+        flash('Что то пошло не так')
+    return redirect(url_for("downloaddecipher"))
 
 
 @app.errorhandler(404)

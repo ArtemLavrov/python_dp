@@ -35,6 +35,9 @@ def allowed_file(filename):
 #Создание экземлпяра объекта
 app = Flask(__name__)
 sslify = SSLify(app)
+app.config['SSL_CERTIFICATE'] = '/etc/nginx/ssl/certificate.crt'
+app.config['SSL_PRIVATE_KEY'] = '/etc/nginx/ssl/private.key'
+
 
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 app.config['SECRET_KEY'] = 'fjehqjchekcejai4kfjkae'

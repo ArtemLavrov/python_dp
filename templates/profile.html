@@ -66,7 +66,19 @@
                 <form action="" method="POST" enctype="multipart/form-data">
                     <div class="form-group">
                       <label for="file-upload" >Загрузите файл для его последующего шифрования</label>
-                      <input type="file" name="filename" class="form-control form-control-sm" id="file-upload">
+                      <input type="file" name="filename" class="form-control form-control-sm" id="file-upload" onchange="checkFileSize()">
+                      <script>
+                            function checkFileSize() {
+                              var fileInput = document.getElementById('file-upload');
+                              var fileSize = fileInput.files[0].size; // Размер файла в байтах
+                              var maxSize = 16 * 1024 * 1024; // Максимальный размер файла в байтах (например, 1 МБ)
+
+                              if (fileSize > maxSize) {
+                                alert('Файл слишком большой. Пожалуйста, выберите файл меньшего размера. Рекомендуемый размер файла до 16 МБ');
+                                fileInput.value = ''; // Сбросить выбранный файл
+                              }
+                            }
+                      </script>
                     </div>
                     <div class="form-group">
                         <label for="select-box">Как вы хотите зашифровать файл ?</label>

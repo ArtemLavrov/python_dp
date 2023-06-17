@@ -7,6 +7,7 @@ import tempfile
 
 
 from flask import Flask, render_template, url_for, request,send_from_directory,session, redirect, abort, flash, send_file
+from flask_sslify import SSLify
 # from flask_login import LoginManager
 from flask_sqlalchemy import SQLAlchemy
 from hashlib import sha256
@@ -21,17 +22,19 @@ from werkzeug.utils import secure_filename
 
 
 UPLOAD_FOLDER = 'D:/python_dp/Downloads'
-ALLOWED_EXTENSIONS = set(['txt', 'pdf', 'png', 'jpg', 'jpeg', 'gif', 'docx', 'zip'])
+ALLOWED_EXTENSIONS = set(['txt', 'pdf', 'png', 'jpg', 'jpeg', 'gif', 'docx', 'zip', 'pak'])
 
 def allowed_file(filename):
     return '.' in filename and \
            filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
+# def check_weght_file(file):
+#     if len(file.read()) > app.config('MAX_CONTENT_LENGTH'):
+#         flash("Файл слишком большой. Рекомендуется отправлять файл до 16 МБ включительно.")
 
 #Создание экземлпяра объекта
 app = Flask(__name__)
-# bootstrap = Bootstrap(app)
-
+sslify = SSLify(app)
 
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 app.config['SECRET_KEY'] = 'fjehqjchekcejai4kfjkae'
@@ -142,61 +145,62 @@ def profile(username):
         abort(401)
     if request.method == 'POST' and 'filename' in request.files:
         file = request.files['filename']
-        if not file:
-            flash('файл не выбран', category='error')
-        if file and allowed_file(file.filename):
-            if request.form['select-box'] == '1':
-                try:
-                    file_data = file.stream.read()
-                    AES_key = get_random_bytes(16)
-                    cipher=AES.new(AES_key, AES.MODE_CBC)
-                    AES_vector = cipher.iv
-                    cipherfile = cipher.encrypt(pad(file_data, AES.block_size))
-                    user_id = db.session.query(Profiles).filter(Profiles.name == f"{session['userLogged']}").first()
-                    f = File(name_file=f'encode'+file.filename, file=cipherfile, userID_file=user_id.id, AES_key=AES_key, AES_vector=AES_vector)
-                    db.session.add(f)
-                    db.session.commit()
-                    flash("Файл успешно зашифрован ", category='success')
-                except:
-                    db.session.rollback()
-                    flash("Ошибка загрузки файла", category='error')
-            else:   # Случай когда пользователь собрался подписать файл
-                try:
-                    file_dataRSA = file.stream.read()
-                    hash_of_file = sha256(file_dataRSA).hexdigest()
-                    user_id = db.session.query(Profiles).filter(Profiles.name == f"{session['userLogged']}").first()
-                    get_private = user_id.private_key
-                    private_list = get_private.split(",")
-                    get_private_tuple = tuple(map(int, private_list))
-                    encrypt_msg = encrypt(hash_of_file, get_private_tuple)
-                    text_encrypt_msg = list(map(str, encrypt_msg))
-                    send_encrypt_msg = ', '.join(text_encrypt_msg)
+        if request.content_length <= 16 * 1024 * 1024:
+            if file and allowed_file(file.filename):
+                if request.form['select-box'] == '1':
+                    try:
+                        file_data = file.stream.read()
+                        AES_key = get_random_bytes(16)
+                        cipher=AES.new(AES_key, AES.MODE_CBC)
+                        AES_vector = cipher.iv
+                        cipherfile = cipher.encrypt(pad(file_data, AES.block_size))
+                        user_id = db.session.query(Profiles).filter(Profiles.name == f"{session['userLogged']}").first()
+                        f = File(name_file=f'encode'+file.filename, file=cipherfile, userID_file=user_id.id, AES_key=AES_key, AES_vector=AES_vector)
+                        db.session.add(f)
+                        db.session.commit()
+                        flash("Файл успешно зашифрован ", category='success')
+                    except:
+                        db.session.rollback()
+                        flash("Ошибка загрузки файла", category='error')
+                else:   # Случай когда пользователь собрался подписать файл
+                    try:
+                        file_dataRSA = file.stream.read()
+                        hash_of_file = sha256(file_dataRSA).hexdigest()
+                        user_id = db.session.query(Profiles).filter(Profiles.name == f"{session['userLogged']}").first()
+                        get_private = user_id.private_key
+                        private_list = get_private.split(",")
+                        get_private_tuple = tuple(map(int, private_list))
+                        encrypt_msg = encrypt(hash_of_file, get_private_tuple)
+                        text_encrypt_msg = list(map(str, encrypt_msg))
+                        send_encrypt_msg = ', '.join(text_encrypt_msg)
 
 
-                    AES_keyRSA = get_random_bytes(16)
-                    cipherRSA = AES.new(AES_keyRSA, AES.MODE_CBC)
-                    AES_vectorRSA = cipherRSA.iv
-                    cipherfileRSA = cipherRSA.encrypt(pad(file_dataRSA, AES.block_size))
+                        AES_keyRSA = get_random_bytes(16)
+                        cipherRSA = AES.new(AES_keyRSA, AES.MODE_CBC)
+                        AES_vectorRSA = cipherRSA.iv
+                        cipherfileRSA = cipherRSA.encrypt(pad(file_dataRSA, AES.block_size))
 
-                    zip_buffer = io.BytesIO()
-                    with zipfile.ZipFile(zip_buffer, "w") as zip_file:
-                        zip_file.writestr(f'{file.filename}', cipherfileRSA)
-                        zip_file.writestr(f'signature_{username}.txt', send_encrypt_msg.encode('utf-8'))
-                        zip_file.writestr("KEY.txt", AES_keyRSA) #тут передаём только вектор
-                        zip_file.writestr("hash.txt", hash_of_file)
-                    # os.unlink(temp_file.name)
-                    zip_data = zip_buffer.getvalue()
+                        zip_buffer = io.BytesIO()
+                        with zipfile.ZipFile(zip_buffer, "w") as zip_file:
+                            zip_file.writestr(f'{file.filename}', cipherfileRSA)
+                            zip_file.writestr(f'signature_{username}.txt', send_encrypt_msg.encode('utf-8'))
+                            zip_file.writestr("IV.txt", AES_vectorRSA)
+                            # zip_file.writestr("hash.txt", hash_of_file)
+                        # os.unlink(temp_file.name)
+                        zip_data = zip_buffer.getvalue()
 
-                    f = File(name_file=file.filename.split(".")[0] + '.zip', file=zip_data, userID_file=user_id.id,
-                             AES_key=AES_keyRSA, AES_vector=AES_vectorRSA)
-                    db.session.add(f)
-                    db.session.commit()
-                    flash("Файл успешно загружен", category='success')
-                except:
-                    db.session.rollback()
-                    flash("Ошибка загрузки файла", category='error')
+                        f = File(name_file=file.filename.split(".")[0] + '.zip', file=zip_data, userID_file=user_id.id,
+                                 AES_key=AES_keyRSA, AES_vector=AES_vectorRSA)
+                        db.session.add(f)
+                        db.session.commit()
+                        flash("Файл успешно загружен", category='success')
+                    except:
+                        db.session.rollback()
+                        flash("Ошибка загрузки файла", category='error')
+            else:
+                flash("Не выбран файл или его расширение не подходит для загрузки", category='error')
         else:
-            flash("Не выбран файл или его расширение не подходит для загрузки", category='error')
+            flash('Файл имеет размер более 16 МБ. Рекомендуется загружать файлы меньшего размера.')
 
     if request.method == 'POST' and 'defilename' in request.files:
         file = request.files['defilename']
@@ -222,7 +226,7 @@ def profile(username):
                 with zipfile.ZipFile(io.BytesIO(file.stream.read()), "r") as zip_data:
                     file_z = zip_data.read(zip_data.filelist[0])
                     sign = zip_data.read(zip_data.filelist[1])
-                    key = zip_data.read(zip_data.filelist[2])
+                    vector = zip_data.read(zip_data.filelist[2])
                 member = request.form['member']
                 get_public = db.session.query(Profiles).filter(Profiles.name == member).first()
                 public_list = get_public.public_key.split(",")
@@ -230,7 +234,7 @@ def profile(username):
                 str_sign_elem = sign.decode().split(',')
                 int_str_sign_elem = [int(element) for element in str_sign_elem]
                 get_hash_shifr_file = decrypt(int_str_sign_elem, public_tuple)
-                decipherfileRSA = AES.new(key, AES.MODE_CBC, query.AES_vector)
+                decipherfileRSA = AES.new(query.AES_key, AES.MODE_CBC, vector)
                 defileRSA = unpad(decipherfileRSA.decrypt(file_z), AES.block_size)
                 hash_of_defile = sha256(defileRSA).hexdigest()
                 if get_hash_shifr_file == hash_of_defile:

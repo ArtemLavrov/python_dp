@@ -76,9 +76,6 @@
                               }
                             }
                       </script>
-                      <div class="input-group mb-3">
-                            <input class="form-control" type="text" name="cipher_phrase" placeholder="Введите секретное слово">
-                      </div>
                     </div>
                     <div class="form-group">
                         <label for="select-box">Как вы хотите зашифровать файл ?</label>
@@ -109,10 +106,7 @@
                               </select>
                           </div>
                           <div class="input-group mb-3">
-                                <input class="form-control" type="text" name="decipher_phrase" placeholder="Введите секретное слово">
-                          </div>
-                          <div class="input-group mb-3">
-                              <select class="custom-select" id="additional-field2" name="additional-field2" style="display:none;">
+                              <select class="custom-select" id="additional-field2" style="display:none;">
                                   <option selected>Choose...</option>
                                   {% for name in name_of_filechanger %}
                                   <option>{{ name }}</option>

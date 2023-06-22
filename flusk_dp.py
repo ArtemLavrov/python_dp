@@ -8,7 +8,6 @@ import tempfile
 
 from flask import Flask, render_template, url_for, request,send_from_directory,session, redirect, abort, flash, send_file
 from flask_sslify import SSLify
-# from flask_login import LoginManager
 from flask_sqlalchemy import SQLAlchemy
 from hashlib import sha256
 from RSA import Generate_Keypair, encrypt, decrypt
@@ -16,9 +15,7 @@ from Crypto.Cipher import AES
 from werkzeug.security import generate_password_hash, check_password_hash
 from Crypto.Random import get_random_bytes
 from Crypto.Util.Padding import pad, unpad
-# from jinja2 import Template, FileSystemLoader, FunctionLoader, Environment
-from werkzeug.utils import secure_filename
-# from wtforms.validators import InputRequired
+
 
 
 UPLOAD_FOLDER = 'D:/python_dp/Downloads'
@@ -28,9 +25,6 @@ def allowed_file(filename):
     return '.' in filename and \
            filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
-# def check_weght_file(file):
-#     if len(file.read()) > app.config('MAX_CONTENT_LENGTH'):
-#         flash("Файл слишком большой. Рекомендуется отправлять файл до 16 МБ включительно.")
 
 #Создание экземлпяра объекта
 app = Flask(__name__)
@@ -42,13 +36,14 @@ app.config['SSL_PRIVATE_KEY'] = '/etc/nginx/ssl/private.key'
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 app.config['SECRET_KEY'] = 'fjehqjchekcejai4kfjkae'
 #app.permanent_session_lifetime = timedelta(minutes=5)
-# app.config["SQLALCHEMY_DATABASE_URI"] = 'sqlite:///D:/python_dp/db.sqlite3'
 app.config["SQLALCHEMY_DATABASE_URI"] = 'sqlite:///db.sqlite3'
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 db = SQLAlchemy(app)
 
 
 menu = ["Авторизация", "Полезная информация", "Обратная связь"]
+
+
 
 
 class Users(db.Model):
@@ -75,7 +70,7 @@ class Profiles(db.Model):
 class File(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name_file = db.Column(db.String(500))
-    file = db.Column(db.BLOB, nullable=True)
+    file = db.Column(db.LargeBinary(length=(2**32)-1), nullable=True)
     userID_file = db.Column(db.Integer, db.ForeignKey('profiles.id'))
     AES_key = db.Column(db.BLOB, nullable=True)
     AES_vector = db.Column(db.BLOB, nullable=True)
@@ -99,6 +94,7 @@ class HashKey(db.Model):
 
     def __repr__(self):
         return f"<hash_key {self.id}>"
+
 
 
 @app.route("/register", methods=["POST", "GET"])
@@ -148,7 +144,7 @@ def profile(username):
         abort(401)
     if request.method == 'POST' and 'filename' in request.files:
         file = request.files['filename']
-        if request.content_length <= 16 * 1024 * 1024:
+        if request.content_length <= 1 * 1024 * 1024 * 1024:
             if file and allowed_file(file.filename):
                 if request.form['select-box'] == '1':
                     try:
@@ -188,8 +184,6 @@ def profile(username):
                             zip_file.writestr(f'{file.filename}', cipherfileRSA)
                             zip_file.writestr(f'signature_{username}.txt', send_encrypt_msg.encode('utf-8'))
                             zip_file.writestr("IV.txt", AES_vectorRSA)
-                            # zip_file.writestr("hash.txt", hash_of_file)
-                        # os.unlink(temp_file.name)
                         zip_data = zip_buffer.getvalue()
 
                         f = File(name_file=file.filename.split(".")[0] + '.zip', file=zip_data, userID_file=user_id.id,
@@ -203,7 +197,7 @@ def profile(username):
             else:
                 flash("Не выбран файл или его расширение не подходит для загрузки", category='error')
         else:
-            flash('Файл имеет размер более 16 МБ. Рекомендуется загружать файлы меньшего размера.')
+            flash('Файл имеет размер более 1 ГБ. Рекомендуется загружать файлы равный либо меньшего размера.')
 
     if request.method == 'POST' and 'defilename' in request.files:
         file = request.files['defilename']
@@ -215,7 +209,6 @@ def profile(username):
                     query=db.session.query(File).filter(file.filename==File.name_file).first()
                     decipherfile=AES.new(query.AES_key, AES.MODE_CBC, query.AES_vector)
                     defile = unpad(decipherfile.decrypt(file.stream.read()),AES.block_size)
-                    # hash_decipher_file = sha256(defile).hexdigest()
                     user_id = db.session.query(Profiles).filter(Profiles.name == f"{session['userLogged']}").first()
                     f = decipherFile(name_decipherfile=f'decode' + file.filename, decipher_file=defile, userID_file=user_id.id)
                     db.session.add(f)
@@ -230,7 +223,7 @@ def profile(username):
                     file_z = zip_data.read(zip_data.filelist[0])
                     sign = zip_data.read(zip_data.filelist[1])
                     vector = zip_data.read(zip_data.filelist[2])
-                member = request.form['member']
+                member = request.form['additional-field2']
                 get_public = db.session.query(Profiles).filter(Profiles.name == member).first()
                 public_list = get_public.public_key.split(",")
                 public_tuple = tuple(map(int, public_list))
@@ -270,7 +263,8 @@ def profile(username):
                 db.session.rollback()
         else:
             flash("Ключи уже сгенерированы", category='info')
-    return render_template('profile.html', title=username, username=username, menu=menu)
+    name_of_filechanger = [row.name for row in db.session.query(Profiles.name).all()]
+    return render_template('profile.html', title=username, username=username, menu=menu, name_of_filechanger=name_of_filechanger)
 
 
 @app.route('/logout')
@@ -304,8 +298,8 @@ def download_file(upload_id):
 
 @app.route('/downloaddecipherfile')
 def downloaddecipher():
-    # if 'userLogged' not in session or session['userLogged'] != username:
-    #     abort(401)
+    if 'userLogged' not in session:
+        abort(401)
     username = session['userLogged']
     name_defiles = []
     uploaddf = db.session.query(decipherFile).join(Profiles, Profiles.id == decipherFile.userID_file).filter(Profiles.name == f'{username}').all()

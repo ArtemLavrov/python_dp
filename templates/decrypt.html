@@ -1,6 +1,6 @@
 {% extends 'header.html' %}
 {% block content %}
-<header>
+<header style="padding-bottom: 14vh">
 <!--Новая версия навигационного поля    -->
     <nav class="navbar navbar-expand-md navbar-light bg-light sticky-top">
         <div  class="container-fluid">
@@ -11,13 +11,10 @@
             <div class="collapse navbar-collapse" id="navbarResponsive">
                 <ul class="navbar-nav ml-auto">
                     <li class="nav-item">
-                        <a href="#" class="nav-link active">Главная</a>
+                        <a href="{{ url_for('login') }}" class="nav-link active">Мой профиль</a>
                     </li>
                     <li class="nav-item">
-                        <a href="{{ url_for('login') }}" class="nav-link">Скачать зашифрованный файл</a>
-                    </li>
-                    <li class="nav-item">
-                        <a href="{{ url_for('login') }}" class="nav-link">Мой профиль</a>
+                        <a href="{{ url_for('download') }}" class="nav-link">Скачать файлы</a>
                     </li>
                     <li class="nav-item">
                         <a href=" {{ url_for('logout') }} " class="nav-link">Выйти</a>
@@ -39,4 +36,3 @@
 </div>
 {% endfor %}
 {% endblock %}
-{% include 'footer.html' %}

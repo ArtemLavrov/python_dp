@@ -11,13 +11,10 @@
             <div class="collapse navbar-collapse" id="navbarResponsive">
                 <ul class="navbar-nav ml-auto">
                     <li class="nav-item">
-                        <a href="#" class="nav-link active">Главная</a>
+                        <a href="#" class="nav-link active">Мой профиль</a>
                     </li>
                     <li class="nav-item">
                         <a href="{{ url_for('download') }}" class="nav-link">Скачать файл</a>
-                    </li>
-                    <li class="nav-item">
-                        <a href="#" class="nav-link">Мой профиль</a>
                     </li>
                     <li class="nav-item">
                         <a href=" {{ url_for('logout') }} " class="nav-link">Выйти</a>
@@ -71,10 +68,10 @@
                             function checkFileSize() {
                               var fileInput = document.getElementById('file-upload');
                               var fileSize = fileInput.files[0].size; // Размер файла в байтах
-                              var maxSize = 16 * 1024 * 1024; // Максимальный размер файла в байтах (например, 1 МБ)
+                              var maxSize = 1 * 1024 * 1024 * 1024; // Максимальный размер файла в байтах (например, 1 МБ)
 
                               if (fileSize > maxSize) {
-                                alert('Файл слишком большой. Пожалуйста, выберите файл меньшего размера. Рекомендуемый размер файла до 16 МБ');
+                                alert('Файл слишком большой. Пожалуйста, выберите файл меньшего размера. Рекомендуемый размер файла до 1 ГБ');
                                 fileInput.value = ''; // Сбросить выбранный файл
                               }
                             }
@@ -104,14 +101,22 @@
                           <div class="form-group">
                               <label for="select-box2">Как вы хотите расшифровать файл ?</label>
                               <select id="select-box2" name="select-box2" class="form-select" aria-label="Default select example">
-                                  <option value="1">Без подписи</option>
-                                  <option value="2">Подписать</option>
+                                  <option value="1">AES</option>
+                                  <option value="2">Проверить подпись</option>
                               </select>
                           </div>
-                          <div class="form-group" id="additional-field2" style="display:none;">
-                              <label for="additional-input2">Выберите участника документаоборота:</label>
-                              <input type="text" id="additional-input2" name="member" class="form-control">
+                          <div class="input-group mb-3">
+                              <select class="custom-select" id="additional-field2" style="display:none;">
+                                  <option selected>Choose...</option>
+                                  {% for name in name_of_filechanger %}
+                                  <option>{{ name }}</option>
+                                  {% endfor %}
+                              </select>
                           </div>
+<!--                          <div class="form-group" id="additional-field2" style="display:none;">-->
+<!--                              <label for="additional-input2">Выберите участника документаоборота:</label>-->
+<!--                              <input type="text" id="additional-input2" name="member" class="form-control">-->
+<!--                          </div>-->
                           <button type="submit" name="button3" class="btn btn-outline-light btn-lg">Загрузить</button>
                     </form>
                 </div>

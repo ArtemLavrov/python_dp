@@ -1,7 +1,6 @@
 {% extends 'header.html' %}
 {% block content %}
-<header>
-<!--Новая версия навигационного поля    -->
+<header style="padding-bottom: 14vh">
     <nav class="navbar navbar-expand-md navbar-light bg-light sticky-top">
         <div  class="container-fluid">
             <a href="#" class="navbar-brand"><img src="{{ url_for('static', filename='logo.svg') }}" alt="Логотип"></a>
@@ -11,13 +10,10 @@
             <div class="collapse navbar-collapse" id="navbarResponsive">
                 <ul class="navbar-nav ml-auto">
                     <li class="nav-item">
-                        <a href="#" class="nav-link active">Главная</a>
+                        <a href="{{ url_for('login') }}" class="nav-link active">Мой профиль</a>
                     </li>
                     <li class="nav-item">
-                        <a href="{{ url_for('login') }}" class="nav-link">Расшифрованные файлы</a>
-                    </li>
-                    <li class="nav-item">
-                        <a href="{{ url_for('login') }}" class="nav-link">Мой профиль</a>
+                        <a href="{{ url_for('downloaddecipher') }}" class="nav-link">Расшифрованные файлы</a>
                     </li>
                     <li class="nav-item">
                         <a href=" {{ url_for('logout') }} " class="nav-link">Выйти</a>
@@ -37,32 +33,7 @@
         <button type="submit" class="btn btn-danger">Удалить</button>
     </form>
 </div>
-<!--<div class="conteiner-fluid">-->
-<!--    <div class="row jumbotron">-->
-<!--        <div class="col-xs-12 col-sm-12 col-md-9 col-lg-9 col-xl-10">-->
-<!--            <h1 class="display-2"></h1>-->
-<!--            <p class="lead">-->
-<!--                1. После регистрации на нашем сайте и последующим входом в свой аккаунт Вас привествует пользовательский интерфейс с помощью которого вы можете зашифровывать или расшифровывать ваши документы для личных нужд.-->
-<!--            </p>-->
-<!--            <p class="lead">-->
-<!--                2. Используя карусель на сайте Вы можете выбрать предложенные способы взаимодействия с вашим документом.-->
-<!--            </p>-->
-<!--            <p class="lead">-->
-<!--                3. Заметим что на сайте поддерживаются форматы шифрования и дешифрования определённого колличества форматов документов: 'txt, pdf, png, jpg, jpeg, gif, docx, zip'.-->
-<!--            </p>-->
-<!--            <p class="lead">-->
-<!--                4. После того как вы загрузите фаш файл, в зависимости от его размера и условий шифрования или дешифрования через некоторое количество времени вы сможете его скачть перейдя в навигационном меню на соответсвующую ссылку.-->
-<!--            </p>-->
-<!--            <h1 class="display-5">Примечание</h1>-->
-<!--            <p class="lead">-->
-<!--                Файлы зашифрованные на стороннем ресурсе не могут быть расшифрованны нашим сайтом. Для гармоничной работы Вам необходимо зафровать документы у нас, чтобы в дальнейшем вы могли их расшифровать.-->
-<!--            </p>-->
-<!--        </div>-->
-<!--        <div class="col-xs-12 col-sm-12 col-md-3 col-lg-3 col-xl-2">-->
 
-<!--        </div>-->
-<!--    </div>-->
-<!--</div>-->
 {% endfor %}
-<!--{% include 'footer.html' %}-->
+
 {% endblock %}

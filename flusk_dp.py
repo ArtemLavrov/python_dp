@@ -96,6 +96,9 @@ class HashKey(db.Model):
         return f"<hash_key {self.id}>"
 
 
+@app.route('/')
+def main():
+    return redirect('/login')
 
 @app.route("/register", methods=["POST", "GET"])
 def register():

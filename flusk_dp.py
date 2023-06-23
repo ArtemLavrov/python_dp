@@ -1,3 +1,4 @@
+#!/root/python_dp/bin/python
 import io
 import os
 from datetime import datetime, timedelta
@@ -86,14 +87,6 @@ class decipherFile(db.Model):
 
     def __repr__(self):
         return f"<file {self.id}>"
-class HashKey(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    id_user = db.Column(db.Integer, db.ForeignKey('profiles.user_id'))
-    hash_public = db.Column(db.String)
-    hash_private = db.Column(db.String)
-
-    def __repr__(self):
-        return f"<hash_key {self.id}>"
 
 
 @app.route('/')
@@ -221,7 +214,7 @@ def profile(username):
                     flash('Файл не шифровался этим сайтом', category='error')
                     db.session.rollback()
             else:
-                query = db.session.query(File).filter(File.name_file == file.filename).first()
+                queryRSA = db.session.query(File).filter(file.filename == File.name_file).first()
                 with zipfile.ZipFile(io.BytesIO(file.stream.read()), "r") as zip_data:
                     file_z = zip_data.read(zip_data.filelist[0])
                     sign = zip_data.read(zip_data.filelist[1])
@@ -233,7 +226,7 @@ def profile(username):
                 str_sign_elem = sign.decode().split(',')
                 int_str_sign_elem = [int(element) for element in str_sign_elem]
                 get_hash_shifr_file = decrypt(int_str_sign_elem, public_tuple)
-                decipherfileRSA = AES.new(query.AES_key, AES.MODE_CBC, vector)
+                decipherfileRSA = AES.new(queryRSA.AES_key, AES.MODE_CBC, vector)
                 defileRSA = unpad(decipherfileRSA.decrypt(file_z), AES.block_size)
                 hash_of_defile = sha256(defileRSA).hexdigest()
                 if get_hash_shifr_file == hash_of_defile:
